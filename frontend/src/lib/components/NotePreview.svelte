@@ -59,22 +59,22 @@
 <section class="flex flex-col md:flex-row items-end gap-6 mb-12">
   <div class="relative group">
     <div class="absolute -inset-1 bg-gradient-to-r from-primary to-tertiary rounded-xl blur opacity-20 group-hover:opacity-30 transition duration-1000"></div>
-    <div class="relative bg-surface-container-lowest p-8 rounded-xl shadow-sm flex flex-col items-center min-w-[180px]">
+    <div class="relative bg-surface-container-lowest dark:bg-zinc-900 p-8 rounded-xl shadow-sm flex flex-col items-center min-w-[180px]">
       <h1 class="font-headline font-extrabold text-7xl text-{typeColor()} kanji-hero-text" lang="ja">
         {subject.data.characters}
       </h1>
       {#if primaryReading()}
-        <p class="font-label text-sm font-semibold tracking-widest text-outline mt-4 uppercase">
+        <p class="font-label text-sm font-semibold tracking-widest text-outline dark:text-zinc-500 mt-4 uppercase">
           {primaryReading()}
         </p>
       {/if}
     </div>
   </div>
   <div class="flex-1 pb-2">
-    <h2 class="font-headline font-bold text-3xl text-on-surface mb-2 tracking-tight">{primaryMeaning()}</h2>
+    <h2 class="font-headline font-bold text-3xl text-on-surface dark:text-zinc-100 mb-2 tracking-tight">{primaryMeaning()}</h2>
     <div class="flex gap-2">
       {#if subject.data.level}
-        <span class="px-3 py-1 bg-secondary/10 text-secondary font-label text-xs font-bold rounded-full">
+        <span class="px-3 py-1 bg-secondary/10 dark:bg-blue-500/15 text-secondary dark:text-blue-400 font-label text-xs font-bold rounded-full">
           Level {subject.data.level}
         </span>
       {/if}
@@ -89,35 +89,35 @@
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-8">
   <!-- Generated Note Section (Primary) -->
   <div class="lg:col-span-8 space-y-8">
-    <div class="bg-surface-container-lowest p-8 rounded-xl shadow-sm relative overflow-hidden">
+    <div class="bg-surface-container-lowest dark:bg-zinc-900 p-8 rounded-xl shadow-sm relative overflow-hidden">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="font-headline font-bold text-xl text-on-surface">Generated Note</h3>
+        <h3 class="font-headline font-bold text-xl text-on-surface dark:text-zinc-100">Generated Note</h3>
       </div>
 
       <div class="space-y-6">
         <!-- Context Section -->
         <div>
-          <label for="note-textarea" class="font-label text-[10px] font-bold text-outline uppercase tracking-[0.2em] mb-2 block">
+          <label for="note-textarea" class="font-label text-[10px] font-bold text-outline dark:text-zinc-500 uppercase tracking-[0.2em] mb-2 block">
             Context & Nuance
           </label>
           <textarea
             id="note-textarea"
             bind:value={noteText}
             rows="12"
-            class="w-full bg-surface-container-low border-none rounded-lg font-body text-on-surface p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 min-h-[280px] resize-y"
+            class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg font-body text-on-surface dark:text-zinc-100 p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 min-h-[280px] resize-y"
           ></textarea>
         </div>
 
         <!-- Extra Notes Section -->
         <div>
-          <label for="personal-notes" class="font-label text-[10px] font-bold text-outline uppercase tracking-[0.2em] mb-2 block">
+          <label for="personal-notes" class="font-label text-[10px] font-bold text-outline dark:text-zinc-500 uppercase tracking-[0.2em] mb-2 block">
             Something more to add?
           </label>
           <textarea
             id="personal-notes"
             placeholder="Add your personal mnemonics here..."
             rows="3"
-            class="w-full bg-surface-container-low border-none rounded-lg font-body text-on-surface p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 resize-y"
+            class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg font-body text-on-surface dark:text-zinc-100 p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 resize-y"
           ></textarea>
         </div>
       </div>
@@ -127,18 +127,18 @@
   <!-- Meaning & Action Column -->
   <div class="lg:col-span-4 space-y-6">
     <!-- Synonyms Card -->
-    <div class="bg-surface-container p-6 rounded-xl space-y-4">
+    <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-xl space-y-4">
       <div class="flex items-center gap-2">
-        <span class="material-symbols-outlined text-secondary">security</span>
-        <h3 class="font-headline font-bold text-sm text-on-surface">Meaning Synonyms</h3>
+        <span class="material-symbols-outlined text-secondary dark:text-blue-400">security</span>
+        <h3 class="font-headline font-bold text-sm text-on-surface dark:text-zinc-100">Meaning Synonyms</h3>
       </div>
-      <p class="font-label text-[10px] text-on-surface-variant/70 leading-relaxed uppercase tracking-wider">
+      <p class="font-label text-[10px] text-on-surface-variant/70 dark:text-zinc-500 leading-relaxed uppercase tracking-wider">
         Conservative mapping for WaniKani
       </p>
 
       <div class="flex flex-wrap gap-2">
         {#each synonyms as syn, i}
-          <span class="bg-surface-container-lowest px-3 py-2 rounded-lg font-body text-sm border-b-2 border-secondary/20 flex items-center gap-1">
+          <span class="bg-surface-container-lowest dark:bg-zinc-700 px-3 py-2 rounded-lg font-body text-sm border-b-2 border-secondary/20 flex items-center gap-1">
             {syn}
             <button
               type="button"
@@ -155,13 +155,13 @@
           placeholder="Add synonym…"
           bind:value={synonymInput}
           onkeydown={handleKeydown}
-          class="flex-1 min-w-0 bg-surface-container-lowest border-none rounded-lg px-3 py-2 font-body text-sm text-on-surface outline outline-1 outline-outline-variant/20 focus:outline-secondary focus:ring-0"
+          class="flex-1 min-w-0 bg-surface-container-lowest dark:bg-zinc-700 border-none rounded-lg px-3 py-2 font-body text-sm text-on-surface dark:text-zinc-100 outline outline-1 outline-outline-variant/20 dark:outline-zinc-600 focus:outline-secondary focus:ring-0"
         />
         <button
           type="button"
           onclick={addSynonym}
           disabled={!synonymInput.trim()}
-          class="flex items-center justify-center gap-1 font-label text-[10px] font-bold text-secondary uppercase tracking-wider hover:bg-secondary/5 px-2 py-2 rounded-lg transition-colors disabled:opacity-40 shrink-0"
+          class="flex items-center justify-center gap-1 font-label text-[10px] font-bold text-secondary dark:text-blue-400 uppercase tracking-wider hover:bg-secondary/5 px-2 py-2 rounded-lg transition-colors disabled:opacity-40 shrink-0"
         >
           <span class="material-symbols-outlined text-sm">add</span>
           Add
@@ -184,13 +184,13 @@
           Save to WaniKani
         {/if}
       </button>
-      <p class="text-center mt-4 font-label text-[10px] text-outline font-medium">Auto-syncs with your WK account API</p>
+      <p class="text-center mt-4 font-label text-[10px] text-outline dark:text-zinc-500 font-medium">Auto-syncs with your WK account API</p>
     </div>
 
     <!-- Info Tooltip -->
-    <div class="bg-white/40 backdrop-blur-md p-4 rounded-xl border border-white/20 flex items-start gap-3">
-      <span class="material-symbols-outlined text-tertiary">info</span>
-      <p class="font-body text-xs text-on-surface-variant leading-relaxed">
+    <div class="bg-white/40 dark:bg-zinc-800/60 backdrop-blur-md p-4 rounded-xl border border-white/20 dark:border-zinc-700/30 flex items-start gap-3">
+      <span class="material-symbols-outlined text-tertiary dark:text-purple-400">info</span>
+      <p class="font-body text-xs text-on-surface-variant dark:text-zinc-400 leading-relaxed">
         Generated from Jisho dictionary data. Review before saving.
       </p>
     </div>

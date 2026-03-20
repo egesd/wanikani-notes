@@ -33,10 +33,10 @@
 
 <div class="space-y-4">
   <div class="flex items-center justify-between px-1">
-    <label for="api-token" class="font-label text-xs uppercase tracking-widest text-on-surface-variant">
+    <label for="api-token" class="font-label text-xs uppercase tracking-widest text-on-surface-variant dark:text-zinc-400">
       WaniKani API Token
     </label>
-    <label class="flex items-center gap-2 font-label text-xs text-primary cursor-pointer hover:underline decoration-2 underline-offset-4">
+    <label class="flex items-center gap-2 font-label text-xs text-primary dark:text-pink-400 cursor-pointer hover:underline decoration-2 underline-offset-4">
       <input
         type="checkbox"
         checked={persist}
@@ -54,9 +54,9 @@
       value={token}
       oninput={handleInput}
       autocomplete="off"
-      class="w-full bg-surface-container-low border-none rounded-lg px-6 py-4 focus:ring-0 focus:bg-surface-container-lowest transition-all duration-300 placeholder:text-outline-variant/50 text-on-surface font-mono outline outline-1 outline-outline-variant/20 focus:outline-primary"
+      class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg px-6 py-4 focus:ring-0 focus:bg-surface-container-lowest dark:focus:bg-zinc-700 transition-all duration-300 placeholder:text-outline-variant/50 dark:placeholder:text-zinc-600 text-on-surface dark:text-zinc-100 font-mono outline outline-1 outline-outline-variant/20 dark:outline-zinc-700 focus:outline-primary"
     />
-    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant">
+    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant dark:text-zinc-500">
       <span class="material-symbols-outlined">key</span>
     </div>
   </div>

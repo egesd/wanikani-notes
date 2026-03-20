@@ -15,11 +15,23 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   line-height: 1.5;
+  transition: background-color 0.2s, color 0.2s;
+}
+
+.dark body,
+html.dark {
+  background-color: #18181b;
+  color: #f4f4f5;
 }
 
 ::selection {
   background: #ffd8e7;
   color: #3d0025;
+}
+
+.dark ::selection {
+  background: #8b005b;
+  color: #ffd8e7;
 }
 
 .material-symbols-outlined {
@@ -30,6 +42,10 @@ body {
   text-shadow: 0 4px 12px rgba(177, 0, 117, 0.08);
 }
 
+.dark .kanji-hero-text {
+  text-shadow: 0 4px 16px rgba(255, 175, 210, 0.15);
+}
+
 .pulse-loading {
   animation: pulse-subtle 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
@@ -37,4 +53,87 @@ body {
 @keyframes pulse-subtle {
   0%, 100% { opacity: 1; }
   50% { opacity: 0.7; }
+}
+
+/* Theme Toggle – pill slider with sun/moon */
+.theme-toggle {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 64px;
+  height: 32px;
+  border-radius: 9999px;
+  border: none;
+  cursor: pointer;
+  background: linear-gradient(135deg, #89c4f4, #f5d76e);
+  padding: 0;
+  transition: background 0.4s ease, transform 0.2s, box-shadow 0.3s;
+  overflow: hidden;
+}
+
+.theme-toggle:hover {
+  transform: scale(1.08);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+}
+
+.theme-toggle:active {
+  transform: scale(0.95);
+}
+
+.theme-toggle.dark {
+  background: linear-gradient(135deg, #2c3e6b, #1a1a2e);
+}
+
+.theme-toggle.dark:hover {
+  box-shadow: 0 4px 16px rgba(100, 100, 255, 0.15);
+}
+
+.toggle-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), background 0.35s;
+  z-index: 1;
+}
+
+.theme-toggle.dark .toggle-thumb {
+  transform: translateX(32px);
+  background: #2a2a3a;
+}
+
+.toggle-icon {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 16px;
+  transition: opacity 0.3s, color 0.3s;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.toggle-icon.sun {
+  left: 8px;
+  color: #f59e0b;
+  opacity: 1;
+}
+
+.toggle-icon.moon {
+  right: 8px;
+  color: #cbd5e1;
+  opacity: 0.4;
+}
+
+.theme-toggle.dark .toggle-icon.sun {
+  opacity: 0.35;
+  color: #94a3b8;
+}
+
+.theme-toggle.dark .toggle-icon.moon {
+  opacity: 1;
+  color: #fbbf24;
 }

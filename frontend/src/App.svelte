@@ -1,6 +1,7 @@
 <script lang="ts">
   import type { WKSubject, JishoWord, JotobaSentence, LookupResponse } from '@shared/types';
   import { lookup, generate, save } from './lib/api';
+  import { loadTheme, saveTheme, applyTheme, type Theme } from './lib/themeStore';
   import TokenInput from './lib/components/TokenInput.svelte';
   import WordForm from './lib/components/WordForm.svelte';
   import SubjectPicker from './lib/components/SubjectPicker.svelte';
@@ -28,6 +29,21 @@
 
   // simple client-side cache
   const lookupCache = new Map<string, LookupResponse>();
+
+  // --- Dark mode ---
+  let theme = $state<Theme>('light');
+  let isDark = $derived(theme === 'dark');
+
+  $effect(() => {
+    theme = loadTheme();
+    applyTheme(theme);
+  });
+
+  function toggleTheme() {
+    theme = theme === 'dark' ? 'light' : 'dark';
+    saveTheme(theme);
+    applyTheme(theme);
+  }
 
   function setStatus(msg: string, type: 'success' | 'error' | 'info' = 'info') {
     statusMessage = msg;
@@ -159,11 +175,22 @@
 </script>
 
 <!-- TopAppBar -->
-<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-xl shadow-pink-900/5">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-xl shadow-pink-900/5 dark:shadow-none">
   <div class="flex justify-between items-center w-full px-6 py-4 max-w-5xl mx-auto">
     <button onclick={() => reset()} class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0">
-      <img src="/assets/KaniNotesLogo.png" alt="KaniNotes" class="h-14 w-auto" />
-      <span class="text-2xl font-black text-pink-700 tracking-tighter font-headline">KaniNotes</span>
+      <img src="/assets/KaniNotesLogoDark.png" alt="KaniNotes" class="h-14 w-auto" />
+      <span class="text-2xl font-black text-pink-700 dark:text-pink-400 tracking-tighter font-headline">KaniNotes</span>
+    </button>
+    <button
+      onclick={toggleTheme}
+      class="theme-toggle"
+      class:dark={isDark}
+      title={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+      aria-label={isDark ? 'Switch to light mode' : 'Switch to dark mode'}
+    >
+      <span class="material-symbols-outlined toggle-icon sun">light_mode</span>
+      <span class="material-symbols-outlined toggle-icon moon">dark_mode</span>
+      <span class="toggle-thumb"></span>
     </button>
   </div>
 </header>
@@ -180,16 +207,16 @@
     <!-- Hero Branding -->
     <div class="text-center mb-12 relative">
       <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/5 rounded-full blur-3xl -z-10"></div>
-      <h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface tracking-tighter mb-4">
-        言葉 <span class="text-primary">Curator</span>
+      <h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface dark:text-zinc-100 tracking-tighter mb-4">
+        言葉 <span class="text-primary dark:text-pink-400">Curator</span>
       </h1>
-      <p class="text-on-surface-variant font-body text-lg max-w-md mx-auto leading-relaxed">
+      <p class="text-on-surface-variant dark:text-zinc-400 font-body text-lg max-w-md mx-auto leading-relaxed">
         Connect your WaniKani knowledge and find the soul behind every character.
       </p>
     </div>
 
     <!-- Central Action Card -->
-    <div class="w-full max-w-2xl bg-surface-container-lowest rounded-lg p-8 md:p-12 relative group">
+    <div class="w-full max-w-2xl bg-surface-container-lowest dark:bg-zinc-900 rounded-lg p-8 md:p-12 relative group">
       {#if !hasToken}
         <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3">
           Setup Required
@@ -207,21 +234,21 @@
 
     <!-- Decorative Grid -->
     <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 w-full opacity-40 grayscale hover:grayscale-0 transition-all duration-700 pointer-events-none">
-      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
-        <span class="text-4xl text-primary font-headline">雨</span>
-        <span class="font-label text-[10px] tracking-widest uppercase">Rain</span>
+      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-primary dark:text-pink-400 font-headline">雨</span>
+        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Rain</span>
       </div>
-      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
-        <span class="text-4xl text-secondary font-headline">海</span>
-        <span class="font-label text-[10px] tracking-widest uppercase">Sea</span>
+      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-secondary dark:text-blue-400 font-headline">海</span>
+        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Sea</span>
       </div>
-      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
-        <span class="text-4xl text-tertiary font-headline">光</span>
-        <span class="font-label text-[10px] tracking-widest uppercase">Light</span>
+      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-tertiary dark:text-purple-400 font-headline">光</span>
+        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Light</span>
       </div>
-      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
-        <span class="text-4xl text-primary font-headline">友</span>
-        <span class="font-label text-[10px] tracking-widest uppercase">Friend</span>
+      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-primary dark:text-pink-400 font-headline">友</span>
+        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Friend</span>
       </div>
     </div>
   </main>
@@ -237,9 +264,9 @@
 <!-- Screen: Generating (loading state) -->
 {#if phase === 'generating'}
   <main class="pt-24 pb-32 px-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
-    <div class="bg-surface-container-lowest p-12 rounded-xl flex flex-col items-center gap-4 pulse-loading">
-      <span class="material-symbols-outlined text-primary text-5xl">auto_awesome</span>
-      <span class="font-label text-xs font-bold tracking-widest text-primary uppercase">Curating context...</span>
+    <div class="bg-surface-container-lowest dark:bg-zinc-900 p-12 rounded-xl flex flex-col items-center gap-4 pulse-loading">
+      <span class="material-symbols-outlined text-primary dark:text-pink-400 text-5xl">auto_awesome</span>
+      <span class="font-label text-xs font-bold tracking-widest text-primary dark:text-pink-400 uppercase">Curating context...</span>
     </div>
   </main>
 {/if}
@@ -264,11 +291,11 @@
   <main class="max-w-5xl mx-auto px-6 pt-12 pb-32">
     <section class="flex flex-col items-center text-center mb-16 relative">
       <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
-      <div class="w-24 h-24 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center shadow-xl shadow-primary/20 mb-6">
+      <div class="w-24 h-24 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center shadow-xl shadow-primary/20 dark:shadow-primary/10 mb-6">
         <span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
       </div>
-      <h1 class="font-headline font-extrabold text-4xl text-on-surface tracking-tight mb-2">Note Saved!</h1>
-      <p class="text-on-surface-variant max-w-sm mb-8">Your new study artifact has been successfully curated into your personal library.</p>
+      <h1 class="font-headline font-extrabold text-4xl text-on-surface dark:text-zinc-100 tracking-tight mb-2">Note Saved!</h1>
+      <p class="text-on-surface-variant dark:text-zinc-400 max-w-sm mb-8">Your new study artifact has been successfully curated into your personal library.</p>
       <button
         onclick={() => reset()}
         class="bg-gradient-to-r from-primary to-primary-container text-on-primary font-label font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 active:scale-95"

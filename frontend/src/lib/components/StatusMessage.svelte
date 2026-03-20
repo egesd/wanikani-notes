@@ -14,9 +14,9 @@
   };
 
   const colors: Record<string, string> = {
-    success: 'text-green-700 bg-green-50',
-    error: 'text-error bg-error-container',
-    info: 'text-secondary bg-secondary-fixed',
+    success: 'text-green-700 bg-green-50 dark:text-green-400 dark:bg-green-950/50',
+    error: 'text-error bg-error-container dark:text-red-400 dark:bg-red-950/50',
+    info: 'text-secondary bg-secondary-fixed dark:text-blue-400 dark:bg-blue-950/50',
   };
 </script>
 

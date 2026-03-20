@@ -19,7 +19,7 @@
 </script>
 
 <div class="space-y-4">
-  <label for="word-input" class="font-label text-xs uppercase tracking-widest text-on-surface-variant px-1">
+  <label for="word-input" class="font-label text-xs uppercase tracking-widest text-on-surface-variant dark:text-zinc-400 px-1">
     Find Vocabulary
   </label>
   <form onsubmit={handleSubmit} class="relative">
@@ -30,12 +30,12 @@
       bind:value={word}
       disabled={loading || disabled}
       lang="ja"
-      class="w-full bg-surface-container-low border-none rounded-lg px-6 py-5 text-xl font-headline focus:ring-0 focus:bg-surface-container-lowest transition-all duration-300 placeholder:text-outline-variant/50 text-on-surface outline outline-1 outline-outline-variant/20 focus:outline-secondary disabled:opacity-50"
+      class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg px-6 py-5 text-xl font-headline focus:ring-0 focus:bg-surface-container-lowest dark:focus:bg-zinc-700 transition-all duration-300 placeholder:text-outline-variant/50 dark:placeholder:text-zinc-600 text-on-surface dark:text-zinc-100 outline outline-1 outline-outline-variant/20 dark:outline-zinc-700 focus:outline-secondary disabled:opacity-50"
     />
     <button
       type="submit"
       disabled={loading || disabled || !word.trim()}
-      class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary disabled:text-outline-variant/50"
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary dark:text-blue-400 disabled:text-outline-variant/50"
     >
       <span class="material-symbols-outlined text-3xl">search</span>
     </button>
