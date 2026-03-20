@@ -103,8 +103,8 @@
           <textarea
             id="note-textarea"
             bind:value={noteText}
-            rows="6"
-            class="w-full bg-surface-container-low border-none rounded-lg font-body text-on-surface p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 min-h-[120px] resize-y"
+            rows="12"
+            class="w-full bg-surface-container-low border-none rounded-lg font-body text-on-surface p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 min-h-[280px] resize-y"
           ></textarea>
         </div>
 
@@ -155,13 +155,13 @@
           placeholder="Add synonym…"
           bind:value={synonymInput}
           onkeydown={handleKeydown}
-          class="flex-1 bg-surface-container-lowest border-none rounded-lg px-3 py-2 font-body text-sm text-on-surface outline outline-1 outline-outline-variant/20 focus:outline-secondary focus:ring-0"
+          class="flex-1 min-w-0 bg-surface-container-lowest border-none rounded-lg px-3 py-2 font-body text-sm text-on-surface outline outline-1 outline-outline-variant/20 focus:outline-secondary focus:ring-0"
         />
         <button
           type="button"
           onclick={addSynonym}
           disabled={!synonymInput.trim()}
-          class="flex items-center justify-center gap-2 font-label text-[10px] font-bold text-secondary uppercase tracking-widest hover:bg-secondary/5 px-3 py-2 rounded-lg transition-colors disabled:opacity-40"
+          class="flex items-center justify-center gap-1 font-label text-[10px] font-bold text-secondary uppercase tracking-wider hover:bg-secondary/5 px-2 py-2 rounded-lg transition-colors disabled:opacity-40 shrink-0"
         >
           <span class="material-symbols-outlined text-sm">add</span>
           Add
