@@ -1,10 +1,11 @@
 <script lang="ts">
   import { loadToken, saveToken, clearToken } from '../tokenStore';
+  import { onMount } from 'svelte';
 
   let { token = $bindable(''), onTokenChange }: { token: string; onTokenChange?: (t: string) => void } = $props();
   let persist = $state(false);
 
-  $effect(() => {
+  onMount(() => {
     const saved = loadToken();
     if (saved) {
       token = saved;
