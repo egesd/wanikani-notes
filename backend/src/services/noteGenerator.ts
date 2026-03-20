@@ -91,7 +91,15 @@ function extractSynonyms(subject: WKSubject, words: JotobaWord[]): string[] {
   const match = findBestMatch(chars, words);
   if (!match) return [];
 
-  const candidates = new Set<string>();
+  const seen = new Set<string>();
+  const candidates: string[] = [];
+
+  function addCandidate(text: string) {
+    const key = text.toLowerCase();
+    if (seen.has(key)) return;
+    seen.add(key);
+    candidates.push(text);
+  }
 
   for (const sense of match.senses) {
     for (const gloss of sense.glosses) {
@@ -103,18 +111,20 @@ function extractSynonyms(subject: WKSubject, words: JotobaWord[]): string[] {
       if (normalized.toLowerCase() === primaryMeaning) continue;
       // Skip overly generic terms
       if (['thing', 'stuff', 'matter', 'something'].includes(normalized.toLowerCase())) continue;
-      candidates.add(normalized);
+      addCandidate(normalized);
     }
   }
 
   // Also include WaniKani accepted meanings that aren't primary
   for (const m of subject.data.meanings) {
     if (!m.primary && m.accepted_answer) {
-      candidates.add(m.meaning);
+      if (m.meaning.toLowerCase() !== primaryMeaning) {
+        addCandidate(m.meaning);
+      }
     }
   }
 
-  return Array.from(candidates).slice(0, 4);
+  return candidates.slice(0, 4);
 }
 
 function buildExtras(
