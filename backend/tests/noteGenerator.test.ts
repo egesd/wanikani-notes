@@ -93,13 +93,13 @@ describe('generateNote', () => {
 
   it('does not include primary meaning as a synonym', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
-    const lower = note.synonyms.map((s) => s.toLowerCase());
+    const lower = note.synonyms.map((s: string) => s.toLowerCase());
     expect(lower).not.toContain('to eat');
   });
 
   it('deduplicates synonyms case-insensitively', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
-    const lower = note.synonyms.map((s) => s.toLowerCase());
+    const lower = note.synonyms.map((s: string) => s.toLowerCase());
     const unique = new Set(lower);
     expect(lower.length).toBe(unique.size);
   });
@@ -129,7 +129,7 @@ describe('generateNote', () => {
       ],
     });
     const note = generateNote(makeSubject(), [word], []);
-    const lower = note.synonyms.map((s) => s.toLowerCase());
+    const lower = note.synonyms.map((s: string) => s.toLowerCase());
     expect(lower).not.toContain('thing');
     expect(lower).not.toContain('stuff');
     expect(lower).not.toContain('matter');
@@ -154,7 +154,7 @@ describe('generateNote', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
     // "To Consume" is a non-primary accepted meaning
     // It should appear (case-insensitively deduped with Jotoba's "to consume")
-    const lower = note.synonyms.map((s) => s.toLowerCase());
+    const lower = note.synonyms.map((s: string) => s.toLowerCase());
     expect(lower).toContain('to consume');
   });
 
