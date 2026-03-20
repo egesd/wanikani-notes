@@ -31,46 +31,33 @@
   }
 </script>
 
-<div class="token-input">
-  <label for="api-token">WaniKani API Token</label>
-  <input
-    id="api-token"
-    type="password"
-    placeholder="Enter your WaniKani API token"
-    value={token}
-    oninput={handleInput}
-    autocomplete="off"
-  />
-  <label class="persist-label">
-    <input type="checkbox" checked={persist} onchange={togglePersist} />
-    Save in browser
-  </label>
+<div class="space-y-4">
+  <div class="flex items-center justify-between px-1">
+    <label for="api-token" class="font-label text-xs uppercase tracking-widest text-on-surface-variant">
+      WaniKani API Token
+    </label>
+    <label class="flex items-center gap-2 font-label text-xs text-primary cursor-pointer hover:underline decoration-2 underline-offset-4">
+      <input
+        type="checkbox"
+        checked={persist}
+        onchange={togglePersist}
+        class="rounded text-primary focus:ring-primary/30 border-outline-variant/30 w-3.5 h-3.5"
+      />
+      Save in browser
+    </label>
+  </div>
+  <div class="relative">
+    <input
+      id="api-token"
+      type="password"
+      placeholder="••••••••••••••••••••••••••••"
+      value={token}
+      oninput={handleInput}
+      autocomplete="off"
+      class="w-full bg-surface-container-low border-none rounded-lg px-6 py-4 focus:ring-0 focus:bg-surface-container-lowest transition-all duration-300 placeholder:text-outline-variant/50 text-on-surface font-mono outline outline-1 outline-outline-variant/20 focus:outline-primary"
+    />
+    <div class="absolute right-4 top-1/2 -translate-y-1/2 text-outline-variant">
+      <span class="material-symbols-outlined">key</span>
+    </div>
+  </div>
 </div>
-
-<style>
-  .token-input {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .token-input > label:first-child {
-    font-weight: 600;
-    font-size: 0.85rem;
-  }
-  input[type='password'] {
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 0.95rem;
-    background: var(--surface);
-    color: var(--text);
-  }
-  .persist-label {
-    font-size: 0.8rem;
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-    color: var(--text-muted);
-    cursor: pointer;
-  }
-</style>

@@ -2,9 +2,11 @@
   let {
     onSubmit,
     loading = false,
+    disabled = false,
   }: {
     onSubmit: (word: string) => void;
     loading?: boolean;
+    disabled?: boolean;
   } = $props();
 
   let word = $state('');
@@ -16,67 +18,43 @@
   }
 </script>
 
-<form class="word-form" onsubmit={handleSubmit}>
-  <label for="word-input">Japanese Word</label>
-  <div class="input-row">
+<div class="space-y-4">
+  <label for="word-input" class="font-label text-xs uppercase tracking-widest text-on-surface-variant px-1">
+    Find Vocabulary
+  </label>
+  <form onsubmit={handleSubmit} class="relative">
     <input
       id="word-input"
       type="text"
-      placeholder="e.g. 贈賄"
+      placeholder="Type a word in Japanese..."
       bind:value={word}
-      disabled={loading}
+      disabled={loading || disabled}
       lang="ja"
+      class="w-full bg-surface-container-low border-none rounded-lg px-6 py-5 text-xl font-headline focus:ring-0 focus:bg-surface-container-lowest transition-all duration-300 placeholder:text-outline-variant/50 text-on-surface outline outline-1 outline-outline-variant/20 focus:outline-secondary disabled:opacity-50"
     />
-    <button type="submit" disabled={loading || !word.trim()}>
+    <button
+      type="submit"
+      disabled={loading || disabled || !word.trim()}
+      class="absolute right-4 top-1/2 -translate-y-1/2 text-secondary disabled:text-outline-variant/50"
+    >
+      <span class="material-symbols-outlined text-3xl">search</span>
+    </button>
+  </form>
+
+  <!-- Primary CTA -->
+  <div class="pt-4">
+    <button
+      onclick={() => { const trimmed = word.trim(); if (trimmed) onSubmit(trimmed); }}
+      disabled={loading || disabled || !word.trim()}
+      class="w-full bg-gradient-to-r from-primary to-primary-container text-white font-headline text-lg py-5 rounded-full shadow-xl shadow-primary/20 hover:shadow-2xl hover:shadow-primary/30 active:scale-[0.98] transition-all duration-200 flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+    >
       {#if loading}
-        Looking up…
+        <span class="material-symbols-outlined animate-spin">progress_activity</span>
+        Looking up...
       {:else}
-        Look Up
+        Find Vocabulary
+        <span class="material-symbols-outlined">arrow_forward</span>
       {/if}
     </button>
   </div>
-</form>
-
-<style>
-  .word-form {
-    display: flex;
-    flex-direction: column;
-    gap: 0.4rem;
-  }
-  .word-form > label {
-    font-weight: 600;
-    font-size: 0.85rem;
-  }
-  .input-row {
-    display: flex;
-    gap: 0.5rem;
-  }
-  input[type='text'] {
-    flex: 1;
-    padding: 0.55rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    font-size: 1.1rem;
-    font-family: inherit;
-    background: var(--surface);
-    color: var(--text);
-  }
-  input[type='text']:lang(ja) {
-    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-  }
-  button {
-    padding: 0.55rem 1.2rem;
-    border: none;
-    border-radius: 6px;
-    background: var(--accent);
-    color: white;
-    font-weight: 600;
-    font-size: 0.9rem;
-    cursor: pointer;
-    white-space: nowrap;
-  }
-  button:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-  }
-</style>
+</div>

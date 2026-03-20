@@ -9,8 +9,6 @@
     onSelect: (subject: WKSubject) => void;
   } = $props();
 
-  let selectedIdx = $state(0);
-
   function primaryMeaning(s: WKSubject): string {
     return s.data.meanings.find((m) => m.primary)?.meaning ?? '';
   }
@@ -19,95 +17,71 @@
     return s.data.readings?.find((r) => r.primary)?.reading ?? '';
   }
 
-  function handleSelect() {
-    onSelect(subjects[selectedIdx]);
+  function subjectTypeColor(s: WKSubject): { bg: string; text: string; accent: string; border: string } {
+    const type = s.object;
+    if (type === 'vocabulary' || type === 'kana_vocabulary') {
+      return { bg: 'bg-tertiary/10', text: 'text-tertiary', accent: 'text-tertiary', border: 'ring-outline-variant/10' };
+    }
+    // Default to primary (kanji-like)
+    return { bg: 'bg-primary/10', text: 'text-primary', accent: 'text-primary', border: 'ring-outline-variant/10' };
+  }
+
+  function subjectTypeLabel(s: WKSubject): string {
+    if (s.object === 'kana_vocabulary') return 'Kana Vocab';
+    return s.object.charAt(0).toUpperCase() + s.object.slice(1);
   }
 </script>
 
-<div class="subject-picker">
-  <h3>Multiple matches found — select one:</h3>
-  <div class="options">
-    {#each subjects as subject, i}
-      <label class="option" class:selected={selectedIdx === i}>
-        <input
-          type="radio"
-          name="subject"
-          value={i}
-          checked={selectedIdx === i}
-          onchange={() => (selectedIdx = i)}
-        />
-        <span class="chars" lang="ja">{subject.data.characters}</span>
-        <span class="reading">{primaryReading(subject)}</span>
-        <span class="meaning">{primaryMeaning(subject)}</span>
-        <span class="level">Lv. {subject.data.level}</span>
-      </label>
-    {/each}
-  </div>
-  <button onclick={handleSelect}>Select</button>
-</div>
+<!-- Hero Instruction Section -->
+<section class="mb-12">
+  <h1 class="text-4xl font-extrabold font-headline tracking-tight text-on-surface mb-2">Multiple matches found.</h1>
+  <p class="text-lg text-on-surface-variant font-body">Which one are you looking for?</p>
+</section>
 
-<style>
-  .subject-picker {
-    display: flex;
-    flex-direction: column;
-    gap: 0.75rem;
-  }
-  h3 {
-    margin: 0;
-    font-size: 0.95rem;
-    font-weight: 600;
-  }
-  .options {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-  }
-  .option {
-    display: flex;
-    align-items: center;
-    gap: 0.65rem;
-    padding: 0.5rem 0.75rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    cursor: pointer;
-    background: var(--surface);
-    transition: border-color 0.15s;
-  }
-  .option.selected {
-    border-color: var(--accent);
-    background: color-mix(in srgb, var(--accent) 6%, var(--surface));
-  }
-  .chars {
-    font-size: 1.3rem;
-    font-weight: 700;
-    font-family: 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
-  }
-  .reading {
-    color: var(--text-muted);
-    font-size: 0.9rem;
-  }
-  .meaning {
-    flex: 1;
-    font-size: 0.9rem;
-  }
-  .level {
-    font-size: 0.75rem;
-    color: var(--text-muted);
-    background: var(--bg);
-    padding: 0.15rem 0.4rem;
-    border-radius: 4px;
-  }
-  input[type='radio'] {
-    accent-color: var(--accent);
-  }
-  button {
-    align-self: flex-end;
-    padding: 0.5rem 1.4rem;
-    border: none;
-    border-radius: 6px;
-    background: var(--accent);
-    color: white;
-    font-weight: 600;
-    cursor: pointer;
-  }
-</style>
+<!-- Bento Grid of Subjects -->
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+  {#each subjects as subject}
+    {@const colors = subjectTypeColor(subject)}
+    <button
+      type="button"
+      onclick={() => onSelect(subject)}
+      class="group relative bg-surface-container-lowest rounded-lg p-8 shadow-sm transition-all duration-300 hover:shadow-xl hover:translate-y-[-4px] cursor-pointer ring-1 {colors.border} text-left"
+    >
+      <div class="flex justify-between items-start mb-6">
+        <span class="px-3 py-1 {colors.bg} {colors.text} font-label text-xs font-bold tracking-widest uppercase rounded-full">
+          {subjectTypeLabel(subject)}
+        </span>
+        <span class="px-3 py-1 bg-surface-container-high text-on-surface-variant font-label text-xs font-bold rounded-full">
+          Level {subject.data.level}
+        </span>
+      </div>
+
+      <div class="flex flex-col gap-2 mb-8">
+        {#if primaryReading(subject)}
+          <span class="text-xs font-label text-on-surface-variant uppercase tracking-[0.2em]">Reading</span>
+          <span class="text-2xl font-medium font-body text-on-surface-variant">{primaryReading(subject)}</span>
+        {/if}
+        <span class="text-7xl font-black {colors.accent} font-headline tracking-tighter" lang="ja">
+          {subject.data.characters}
+        </span>
+      </div>
+
+      <div class="pt-6 border-t border-surface-container-high">
+        <h3 class="text-xl font-bold font-headline text-on-surface mb-1">{primaryMeaning(subject)}</h3>
+      </div>
+
+      <div class="absolute bottom-6 right-8 opacity-0 group-hover:opacity-100 transition-opacity">
+        <span class="material-symbols-outlined {colors.accent}">arrow_forward_ios</span>
+      </div>
+    </button>
+  {/each}
+
+  <!-- Help Tip Card -->
+  <div class="bg-surface-container p-8 rounded-lg flex flex-col justify-center items-center text-center">
+    <div class="w-16 h-16 bg-white rounded-full flex items-center justify-center mb-4 shadow-sm">
+      <span class="material-symbols-outlined text-primary text-3xl">lightbulb</span>
+    </div>
+    <h4 class="font-headline font-bold text-on-surface mb-2">Can't find the right one?</h4>
+    <p class="text-sm text-on-surface-variant mb-6 px-4">Try refining your search with specific readings or radical components.</p>
+  </div>
+</div>

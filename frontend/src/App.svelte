@@ -1,5 +1,5 @@
 <script lang="ts">
-  import type { WKSubject, JotobaWord, JotobaSentence, LookupResponse } from '@shared/types';
+  import type { WKSubject, JishoWord, JotobaSentence, LookupResponse } from '@shared/types';
   import { lookup, generate, save } from './lib/api';
   import TokenInput from './lib/components/TokenInput.svelte';
   import WordForm from './lib/components/WordForm.svelte';
@@ -14,7 +14,7 @@
 
   // lookup results
   let subjects = $state<WKSubject[]>([]);
-  let words = $state<JotobaWord[]>([]);
+  let words = $state<JishoWord[]>([]);
   let sentences = $state<JotobaSentence[]>([]);
 
   // selected subject + generated note
@@ -37,6 +37,8 @@
   function clearStatus() {
     statusMessage = '';
   }
+
+  let hasToken = $derived(token.length > 0);
 
   async function handleLookup(word: string) {
     if (!token) {
@@ -129,86 +131,129 @@
   }
 </script>
 
-<main>
-  <h1>WaniKani Study Notes</h1>
-
-  <section class="card">
-    <TokenInput bind:token onTokenChange={(t) => (token = t)} />
-  </section>
-
-  <section class="card">
-    <WordForm onSubmit={handleLookup} loading={phase === 'loading'} />
-  </section>
-
-  {#if statusMessage}
-    <StatusMessage message={statusMessage} type={statusType} />
-  {/if}
-
-  {#if phase === 'pick_subject'}
-    <section class="card">
-      <SubjectPicker {subjects} onSelect={selectSubject} />
-    </section>
-  {/if}
-
-  {#if phase === 'generating'}
-    <section class="card loading-card">
-      Generating note…
-    </section>
-  {/if}
-
-  {#if phase === 'preview' || phase === 'saving'}
-    <section class="card">
-      {#if selectedSubject}
-        <NotePreview
-          subject={selectedSubject}
-          bind:noteText
-          bind:synonyms
-          onSave={handleSave}
-          saving={phase === 'saving'}
-        />
+<!-- TopAppBar -->
+<header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-xl shadow-pink-900/5">
+  <div class="flex justify-between items-center w-full px-6 py-4 max-w-5xl mx-auto">
+    <div class="text-2xl font-black text-pink-700 tracking-tighter font-headline">ZenNotes</div>
+    <div class="flex items-center gap-4">
+      {#if hasToken}
+        <span class="material-symbols-outlined text-green-600 text-sm" title="API token set">check_circle</span>
       {/if}
+      <button class="p-2 rounded-full text-zinc-500 hover:bg-pink-50 transition-colors active:scale-95 duration-200">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+{#if statusMessage}
+  <div class="max-w-5xl mx-auto px-6 pt-4">
+    <StatusMessage message={statusMessage} type={statusType} />
+  </div>
+{/if}
+
+<!-- Screen: Search / Setup (idle + loading) -->
+{#if phase === 'idle' || phase === 'loading'}
+  <main class="pt-24 pb-32 px-6 max-w-5xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+    <!-- Hero Branding -->
+    <div class="text-center mb-12 relative">
+      <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-48 h-48 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+      <h1 class="font-headline text-5xl md:text-7xl font-extrabold text-on-surface tracking-tighter mb-4">
+        言葉 <span class="text-primary">Curator</span>
+      </h1>
+      <p class="text-on-surface-variant font-body text-lg max-w-md mx-auto leading-relaxed">
+        Connect your WaniKani knowledge and find the soul behind every character.
+      </p>
+    </div>
+
+    <!-- Central Action Card -->
+    <div class="w-full max-w-2xl bg-surface-container-lowest rounded-lg p-8 md:p-12 relative group">
+      {#if !hasToken}
+        <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3">
+          Setup Required
+        </div>
+      {/if}
+
+      <div class="space-y-10">
+        <!-- API Token Section -->
+        <TokenInput bind:token onTokenChange={(t) => (token = t)} />
+
+        <!-- Search Section -->
+        <WordForm onSubmit={handleLookup} loading={phase === 'loading'} disabled={!hasToken} />
+      </div>
+    </div>
+
+    <!-- Decorative Grid -->
+    <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 w-full opacity-40 grayscale hover:grayscale-0 transition-all duration-700 pointer-events-none">
+      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-primary font-headline">雨</span>
+        <span class="font-label text-[10px] tracking-widest uppercase">Rain</span>
+      </div>
+      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-secondary font-headline">海</span>
+        <span class="font-label text-[10px] tracking-widest uppercase">Sea</span>
+      </div>
+      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-tertiary font-headline">光</span>
+        <span class="font-label text-[10px] tracking-widest uppercase">Light</span>
+      </div>
+      <div class="bg-surface-container p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-primary font-headline">友</span>
+        <span class="font-label text-[10px] tracking-widest uppercase">Friend</span>
+      </div>
+    </div>
+  </main>
+{/if}
+
+<!-- Screen: Subject Selection -->
+{#if phase === 'pick_subject'}
+  <main class="pt-24 pb-32 px-6 max-w-5xl mx-auto">
+    <SubjectPicker {subjects} onSelect={selectSubject} />
+  </main>
+{/if}
+
+<!-- Screen: Generating (loading state) -->
+{#if phase === 'generating'}
+  <main class="pt-24 pb-32 px-6 max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[calc(100vh-80px)]">
+    <div class="bg-surface-container-lowest p-12 rounded-xl flex flex-col items-center gap-4 pulse-loading">
+      <span class="material-symbols-outlined text-primary text-5xl">auto_awesome</span>
+      <span class="font-label text-xs font-bold tracking-widest text-primary uppercase">Curating context...</span>
+    </div>
+  </main>
+{/if}
+
+<!-- Screen: Note Preview / Edit -->
+{#if phase === 'preview' || phase === 'saving'}
+  <main class="max-w-4xl mx-auto px-6 pt-12 pb-32">
+    {#if selectedSubject}
+      <NotePreview
+        subject={selectedSubject}
+        bind:noteText
+        bind:synonyms
+        onSave={handleSave}
+        saving={phase === 'saving'}
+      />
+    {/if}
+  </main>
+{/if}
+
+<!-- Screen: Success -->
+{#if phase === 'done'}
+  <main class="max-w-5xl mx-auto px-6 pt-12 pb-32">
+    <section class="flex flex-col items-center text-center mb-16 relative">
+      <div class="absolute -top-12 left-1/2 -translate-x-1/2 w-64 h-64 bg-primary/5 rounded-full blur-3xl -z-10"></div>
+      <div class="w-24 h-24 bg-gradient-to-br from-primary to-primary-container rounded-full flex items-center justify-center shadow-xl shadow-primary/20 mb-6">
+        <span class="material-symbols-outlined text-white text-5xl" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+      </div>
+      <h1 class="font-headline font-extrabold text-4xl text-on-surface tracking-tight mb-2">Note Saved!</h1>
+      <p class="text-on-surface-variant max-w-sm mb-8">Your new study artifact has been successfully curated into your personal library.</p>
+      <button
+        onclick={reset}
+        class="bg-gradient-to-r from-primary to-primary-container text-on-primary font-label font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 active:scale-95"
+      >
+        <span class="material-symbols-outlined text-xl">search</span>
+        Search Another Word
+      </button>
     </section>
-  {/if}
-
-  {#if phase === 'done'}
-    <button class="reset-btn" onclick={reset}>Look up another word</button>
-  {/if}
-</main>
-
-<style>
-  main {
-    max-width: 600px;
-    margin: 0 auto;
-    padding: 2rem 1rem;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-  }
-  h1 {
-    font-size: 1.5rem;
-    font-weight: 700;
-    text-align: center;
-    margin: 0 0 0.5rem;
-  }
-  .card {
-    padding: 1.2rem;
-    background: var(--surface);
-    border: 1px solid var(--border);
-    border-radius: 10px;
-  }
-  .loading-card {
-    text-align: center;
-    color: var(--text-muted);
-    font-style: italic;
-  }
-  .reset-btn {
-    padding: 0.55rem 1.4rem;
-    border: 1px solid var(--border);
-    border-radius: 6px;
-    background: var(--surface);
-    color: var(--text);
-    font-size: 0.9rem;
-    cursor: pointer;
-    align-self: center;
-  }
-</style>
+  </main>
+{/if}
