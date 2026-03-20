@@ -72,6 +72,7 @@
         await selectSubject(subjects[0]);
       } else {
         phase = 'pick_subject';
+        pushPhase('pick_subject');
       }
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Lookup failed', 'error');
@@ -89,6 +90,7 @@
       noteText = result.noteText;
       synonyms = result.synonyms;
       phase = 'preview';
+      pushPhase('preview');
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Note generation failed', 'error');
       phase = 'idle';
@@ -113,13 +115,38 @@
         'success',
       );
       phase = 'done';
+      pushPhase('done');
     } catch (err) {
       setStatus(err instanceof Error ? err.message : 'Save failed', 'error');
       phase = 'preview';
     }
   }
 
-  function reset() {
+  // --- Browser history integration ---
+  const historyPhases: Phase[] = ['pick_subject', 'preview', 'done'];
+
+  function pushPhase(p: Phase) {
+    if (historyPhases.includes(p)) {
+      history.pushState({ phase: p }, '');
+    }
+  }
+
+  function handlePopState() {
+    // When the user hits back, return to idle (search)
+    reset(true);
+  }
+
+  $effect(() => {
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  });
+
+  function reset(fromPopState = false) {
+    if (!fromPopState && phase !== 'idle') {
+      // If we're navigating away from a history-tracked phase, go back properly
+      // But just resetting state is fine — we replace current state with idle
+      history.replaceState({ phase: 'idle' }, '');
+    }
     phase = 'idle';
     subjects = [];
     words = [];
@@ -134,7 +161,7 @@
 <!-- TopAppBar -->
 <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-xl shadow-pink-900/5">
   <div class="flex justify-between items-center w-full px-6 py-4 max-w-5xl mx-auto">
-    <div class="text-2xl font-black text-pink-700 tracking-tighter font-headline">ZenNotes</div>
+    <button onclick={() => reset()} class="text-2xl font-black text-pink-700 tracking-tighter font-headline hover:text-pink-600 transition-colors cursor-pointer bg-transparent border-none p-0">ZenNotes</button>
     <div class="flex items-center gap-4">
       {#if hasToken}
         <span class="material-symbols-outlined text-green-600 text-sm" title="API token set">check_circle</span>
@@ -248,7 +275,7 @@
       <h1 class="font-headline font-extrabold text-4xl text-on-surface tracking-tight mb-2">Note Saved!</h1>
       <p class="text-on-surface-variant max-w-sm mb-8">Your new study artifact has been successfully curated into your personal library.</p>
       <button
-        onclick={reset}
+        onclick={() => reset()}
         class="bg-gradient-to-r from-primary to-primary-container text-on-primary font-label font-bold px-8 py-4 rounded-full shadow-lg hover:shadow-primary/30 transition-all flex items-center gap-2 active:scale-95"
       >
         <span class="material-symbols-outlined text-xl">search</span>
