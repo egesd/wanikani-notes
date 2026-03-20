@@ -14,6 +14,9 @@ app.use('/api', dictionaryRoutes);
 app.use('/api', generateRoutes);
 app.use('/api', wanikaniRoutes);
 
-app.listen(PORT, () => {
+const server = app.listen(PORT, () => {
   console.log(`Backend running on http://localhost:${PORT}`);
 });
+
+// Allow tsx watch to kill the process cleanly
+process.on('SIGTERM', () => process.exit(0));
