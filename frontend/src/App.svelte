@@ -161,15 +161,10 @@
 <!-- TopAppBar -->
 <header class="sticky top-0 z-50 bg-white/80 backdrop-blur-xl shadow-xl shadow-pink-900/5">
   <div class="flex justify-between items-center w-full px-6 py-4 max-w-5xl mx-auto">
-    <button onclick={() => reset()} class="text-2xl font-black text-pink-700 tracking-tighter font-headline hover:text-pink-600 transition-colors cursor-pointer bg-transparent border-none p-0">KaniNotes</button>
-    <div class="flex items-center gap-4">
-      {#if hasToken}
-        <span class="material-symbols-outlined text-green-600 text-sm" title="API token set">check_circle</span>
-      {/if}
-      <button class="p-2 rounded-full text-zinc-500 hover:bg-pink-50 transition-colors active:scale-95 duration-200">
-        <span class="material-symbols-outlined">settings</span>
-      </button>
-    </div>
+    <button onclick={() => reset()} class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0">
+      <img src="/assets/KaniNotesLogo.png" alt="KaniNotes" class="h-14 w-auto" />
+      <span class="text-2xl font-black text-pink-700 tracking-tighter font-headline">KaniNotes</span>
+    </button>
   </div>
 </header>
 
