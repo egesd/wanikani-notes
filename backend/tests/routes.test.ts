@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
-import type { WKSubject, JotobaWord, JotobaSentence } from '@shared/types';
+import type { WKSubject, JishoWord, JotobaSentence } from '@shared/types';
 
 // ── Mock external services ──
 
@@ -11,14 +11,18 @@ vi.mock('../src/services/wanikani.js', () => ({
   updateStudyMaterial: vi.fn(),
 }));
 
-vi.mock('../src/services/jotoba.js', () => ({
+vi.mock('../src/services/jisho.js', () => ({
   searchWords: vi.fn(),
+}));
+
+vi.mock('../src/services/jotoba.js', () => ({
   searchSentences: vi.fn(),
 }));
 
 // Import after mocking
 import { searchSubjects, getStudyMaterials, createStudyMaterial, updateStudyMaterial } from '../src/services/wanikani.js';
-import { searchWords, searchSentences } from '../src/services/jotoba.js';
+import { searchWords } from '../src/services/jisho.js';
+import { searchSentences } from '../src/services/jotoba.js';
 import dictionaryRoutes from '../src/routes/dictionary.js';
 import generateRoutes from '../src/routes/generate.js';
 import wanikaniRoutes from '../src/routes/wanikani.js';
@@ -75,10 +79,20 @@ const mockSubject: WKSubject = {
   },
 };
 
-const mockWord: JotobaWord = {
-  reading: { kanji: '走る', kana: 'はしる' },
-  common: true,
-  senses: [{ glosses: ['to run', 'to dash'], pos: [{ Verb: 'Godan' }], language: 'English' }],
+const mockWord: JishoWord = {
+  slug: '走る',
+  is_common: true,
+  tags: [],
+  jlpt: ['jlpt-n4'],
+  japanese: [{ word: '走る', reading: 'はしる' }],
+  senses: [{
+    english_definitions: ['to run', 'to dash'],
+    parts_of_speech: ['Godan verb'],
+    tags: [],
+    info: [],
+    see_also: [],
+    restrictions: [],
+  }],
 };
 
 const mockSentence: JotobaSentence = {

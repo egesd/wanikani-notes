@@ -38,26 +38,32 @@ export interface WKStudyMaterial {
   };
 }
 
-// ── Jotoba types ──
+// ── Jisho types ──
 
-export type JotobaPos = Record<string, string | Record<string, string>>;
-
-export interface JotobaSense {
-  glosses: string[];
-  pos?: JotobaPos[];
-  language: string;
+export interface JishoJapanese {
+  word?: string;
+  reading: string;
 }
 
-export interface JotobaWord {
-  reading: {
-    kana: string;
-    kanji?: string;
-    furigana?: string;
-  };
-  common: boolean;
-  senses: JotobaSense[];
-  pitch?: { part: string; high: boolean }[];
+export interface JishoSense {
+  english_definitions: string[];
+  parts_of_speech: string[];
+  tags: string[];
+  info: string[];
+  see_also: string[];
+  restrictions: string[];
 }
+
+export interface JishoWord {
+  slug: string;
+  is_common: boolean;
+  tags: string[];
+  jlpt: string[];
+  japanese: JishoJapanese[];
+  senses: JishoSense[];
+}
+
+// ── Jotoba types (sentences only) ──
 
 export interface JotobaSentence {
   content: string;
@@ -75,13 +81,13 @@ export interface LookupRequest {
 
 export interface LookupResponse {
   subjects: WKSubject[];
-  words: JotobaWord[];
+  words: JishoWord[];
   sentences: JotobaSentence[];
 }
 
 export interface GenerateRequest {
   subject: WKSubject;
-  words: JotobaWord[];
+  words: JishoWord[];
   sentences: JotobaSentence[];
 }
 

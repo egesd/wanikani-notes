@@ -2,9 +2,8 @@ import type {
   WKSubject,
   WKMeaning,
   WKReading,
-  JotobaWord,
-  JotobaPos,
-  JotobaSense,
+  JishoWord,
+  JishoSense,
   JotobaSentence,
   GeneratedNote,
 } from '@shared/types.js';
@@ -15,7 +14,7 @@ import type {
  */
 export function generateNote(
   subject: WKSubject,
-  words: JotobaWord[],
+  words: JishoWord[],
   sentences: JotobaSentence[],
 ): GeneratedNote {
   const contextText = buildContext(subject, words);
@@ -44,7 +43,7 @@ export function generateNote(
 
 // ── Helpers ──
 
-function buildContext(subject: WKSubject, words: JotobaWord[]): string {
+function buildContext(subject: WKSubject, words: JishoWord[]): string {
   const chars = subject.data.characters;
   const primaryMeaning =
     subject.data.meanings.find((m: WKMeaning) => m.primary)?.meaning ?? '';
@@ -54,7 +53,6 @@ function buildContext(subject: WKSubject, words: JotobaWord[]): string {
   const partsOfSpeech = subject.data.parts_of_speech ?? [];
   const posLabel = partsOfSpeech.length > 0 ? partsOfSpeech.join(', ') : null;
 
-  // Find the best Jotoba match for richer gloss info
   const match = findBestMatch(chars, words);
 
   let line1 = `${chars}`;
@@ -63,12 +61,11 @@ function buildContext(subject: WKSubject, words: JotobaWord[]): string {
   if (posLabel) line1 += ` [${posLabel}]`;
   line1 += '.';
 
-  // Add a second sentence from Jotoba glosses if available
   let line2 = '';
   if (match) {
-    const commonTag = match.common ? 'common word' : 'uncommon word';
+    const commonTag = match.is_common ? 'common word' : 'uncommon word';
     const extraGlosses = match.senses
-      .flatMap((s: JotobaSense) => s.glosses)
+      .flatMap((s: JishoSense) => s.english_definitions)
       .filter(
         (g: string) => g.toLowerCase() !== primaryMeaning.toLowerCase(),
       )
@@ -79,12 +76,17 @@ function buildContext(subject: WKSubject, words: JotobaWord[]): string {
     } else {
       line2 = `It is a ${commonTag}.`;
     }
+
+    // Add JLPT level if available
+    if (match.jlpt.length > 0) {
+      line2 += ` (${match.jlpt[0].toUpperCase()})`;
+    }
   }
 
   return [line1, line2].filter(Boolean).join(' ');
 }
 
-function extractSynonyms(subject: WKSubject, words: JotobaWord[]): string[] {
+function extractSynonyms(subject: WKSubject, words: JishoWord[]): string[] {
   const primaryMeaning =
     subject.data.meanings.find((m: WKMeaning) => m.primary)?.meaning?.toLowerCase() ?? '';
 
@@ -103,14 +105,11 @@ function extractSynonyms(subject: WKSubject, words: JotobaWord[]): string[] {
   }
 
   for (const sense of match.senses) {
-    for (const gloss of sense.glosses) {
-      const normalized = gloss.trim();
-      // Only keep single-word or simple two-word glosses
+    for (const def of sense.english_definitions) {
+      const normalized = def.trim();
       const wordCount = normalized.split(/\s+/).length;
       if (wordCount > 2) continue;
-      // Skip if it's the same as the primary meaning
       if (normalized.toLowerCase() === primaryMeaning) continue;
-      // Skip overly generic terms
       if (['thing', 'stuff', 'matter', 'something'].includes(normalized.toLowerCase())) continue;
       addCandidate(normalized);
     }
@@ -130,24 +129,48 @@ function extractSynonyms(subject: WKSubject, words: JotobaWord[]): string[] {
 
 function buildExtras(
   subject: WKSubject,
-  words: JotobaWord[],
+  words: JishoWord[],
   sentences: JotobaSentence[],
 ): string {
   const parts: string[] = [];
 
-  // Part-of-speech / register info from Jotoba
   const match = findBestMatch(subject.data.characters, words);
   if (match) {
+    // Parts of speech from Jisho (already plain strings)
     const allPos = match.senses
-      .flatMap((s: JotobaSense) => s.pos ?? [])
-      .map((p: JotobaPos) => formatPos(p))
+      .flatMap((s: JishoSense) => s.parts_of_speech)
       .filter((p: string, i: number, a: string[]) => a.indexOf(p) === i);
     if (allPos.length > 0) {
       parts.push(`Parts of speech: ${allPos.join(', ')}.`);
     }
+
+    // Usage notes / info from Jisho
+    const allInfo = match.senses
+      .flatMap((s: JishoSense) => s.info)
+      .filter(Boolean);
+    if (allInfo.length > 0) {
+      parts.push(`Notes: ${allInfo.join('; ')}.`);
+    }
+
+    // See also references
+    const seeAlso = match.senses
+      .flatMap((s: JishoSense) => s.see_also)
+      .filter((s: string, i: number, a: string[]) => a.indexOf(s) === i)
+      .slice(0, 3);
+    if (seeAlso.length > 0) {
+      parts.push(`See also: ${seeAlso.join(', ')}.`);
+    }
+
+    // Tags (e.g. "Food, cooking", "Usually written using kana alone")
+    const allTags = match.senses
+      .flatMap((s: JishoSense) => s.tags)
+      .filter((t: string, i: number, a: string[]) => a.indexOf(t) === i);
+    if (allTags.length > 0) {
+      parts.push(`Tags: ${allTags.join(', ')}.`);
+    }
   }
 
-  // Example sentence (first one from Jotoba)
+  // Example sentence from Jotoba
   const sentence = sentences[0];
   if (sentence) {
     parts.push(
@@ -158,24 +181,14 @@ function buildExtras(
   return parts.join('\n');
 }
 
-function formatPos(p: JotobaPos): string {
-  const [category, detail] = Object.entries(p)[0];
-  if (typeof detail === 'string') {
-    return `${detail} ${category}`;
-  }
-  // Nested object like {"Irregular": "NounOrAuxSuru"}
-  const [subType, subDetail] = Object.entries(detail)[0];
-  return `${category} (${subType}: ${subDetail})`;
-}
-
 function findBestMatch(
   characters: string,
-  words: JotobaWord[],
-): JotobaWord | undefined {
-  // Prefer exact kanji match, then kana match
+  words: JishoWord[],
+): JishoWord | undefined {
+  // Prefer exact slug match, then match by japanese[].word, then first result
   return (
-    words.find((w) => w.reading.kanji === characters) ??
-    words.find((w) => w.reading.kana === characters) ??
+    words.find((w) => w.slug === characters) ??
+    words.find((w) => w.japanese.some((j) => j.word === characters)) ??
     words[0]
   );
 }

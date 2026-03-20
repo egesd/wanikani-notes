@@ -1,6 +1,7 @@
 import { Router } from 'express';
 import { searchSubjects } from '../services/wanikani.js';
-import { searchWords, searchSentences } from '../services/jotoba.js';
+import { searchWords } from '../services/jisho.js';
+import { searchSentences } from '../services/jotoba.js';
 import type { LookupRequest, LookupResponse } from '@shared/types.js';
 
 const router = Router();

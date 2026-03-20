@@ -34,13 +34,13 @@ The Vite dev server proxies `/api` requests to the backend automatically.
 2. Type a Japanese vocabulary word (e.g. `贈賄`) and click **Look Up**
 3. The backend runs three lookups in parallel:
    - **WaniKani**: searches vocabulary subjects by slug to find matching `subject_id`(s)
-   - **Jotoba words**: retrieves meanings, readings, part-of-speech tags
+   - **Jisho**: retrieves meanings, readings, parts of speech, JLPT level, usage notes, related words
    - **Jotoba sentences**: retrieves example sentences with translations
 4. If multiple WaniKani matches are found, a picker is shown to disambiguate
 5. The backend assembles a structured note from the gathered data:
-   - **Context** — 1-2 sentence explanation from Jotoba glosses + common/uncommon flag
+   - **Context** — 1-2 sentence explanation with glosses, common/uncommon flag, and JLPT level (when available)
    - **Synonyms** — only conservative single/two-word English equivalents
-   - **Extras** — parts of speech, example sentence with translation
+   - **Extras** — parts of speech, usage notes, related words (see also), tags, example sentence with translation
 6. The note is displayed in an editable preview card
 
 ### Save to WaniKani Flow
@@ -66,7 +66,8 @@ wanikani-notes/
 │       │   └── wanikani.ts           # POST /api/save
 │       └── services/
 │           ├── wanikani.ts           # WaniKani API client
-│           ├── jotoba.ts             # Jotoba API client
+│           ├── jisho.ts              # Jisho API client (word definitions)
+│           ├── jotoba.ts             # Jotoba API client (sentences)
 │           └── noteGenerator.ts      # Template-based note builder
 ├── frontend/
 │   └── src/
@@ -91,7 +92,20 @@ wanikani-notes/
 | API       | Auth Required | Used For                              |
 |-----------|---------------|---------------------------------------|
 | WaniKani  | Yes (token)   | Subject lookup, study material CRUD   |
-| Jotoba    | No            | Dictionary definitions, example sentences |
+| Jisho     | No            | Word definitions, POS, JLPT, usage notes |
+| Jotoba    | No            | Example sentences with translations   |
+
+## Testing
+
+```bash
+npm test
+```
+
+Runs backend and frontend test suites (vitest). Tests cover:
+- Note generation logic (synonyms, context, extras)
+- API service clients (Jisho, Jotoba, WaniKani) with mocked fetch
+- Route handlers (validation, error handling, create-vs-update)
+- Frontend API wrapper and token store
 
 ## Security Notes
 

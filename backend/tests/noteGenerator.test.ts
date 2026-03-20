@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generateNote } from '../src/services/noteGenerator.js';
-import type { WKSubject, JotobaWord, JotobaSentence } from '@shared/types';
+import type { WKSubject, JishoWord, JotobaSentence } from '@shared/types';
 
 // ── Fixtures ──
 
@@ -23,15 +23,21 @@ function makeSubject(overrides: Partial<WKSubject['data']> = {}): WKSubject {
   };
 }
 
-function makeWord(overrides: Partial<JotobaWord> = {}): JotobaWord {
+function makeWord(overrides: Partial<JishoWord> = {}): JishoWord {
   return {
-    reading: { kanji: '食べる', kana: 'たべる' },
-    common: true,
+    slug: '食べる',
+    is_common: true,
+    tags: [],
+    jlpt: ['jlpt-n5'],
+    japanese: [{ word: '食べる', reading: 'たべる' }],
     senses: [
       {
-        glosses: ['to eat', 'to consume', 'to dine'],
-        pos: [{ Verb: 'Ichidan' }, { Verb: 'Transitive' }],
-        language: 'English',
+        english_definitions: ['to eat', 'to consume', 'to dine'],
+        parts_of_speech: ['Ichidan verb', 'Transitive verb'],
+        tags: [],
+        info: [],
+        see_also: [],
+        restrictions: [],
       },
     ],
     ...overrides,
@@ -74,18 +80,23 @@ describe('generateNote', () => {
   });
 
   it('marks uncommon words', () => {
-    const word = makeWord({ common: false });
+    const word = makeWord({ is_common: false });
     const note = generateNote(makeSubject(), [word], []);
     expect(note.noteText).toContain('uncommon word');
   });
 
-  it('includes extra glosses from Jotoba', () => {
+  it('includes extra glosses from Jisho', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
     expect(note.noteText).toContain('to consume');
     expect(note.noteText).toContain('to dine');
   });
 
-  it('extracts synonyms from Jotoba glosses', () => {
+  it('includes JLPT level', () => {
+    const note = generateNote(makeSubject(), [makeWord()], []);
+    expect(note.noteText).toContain('JLPT-N5');
+  });
+
+  it('extracts synonyms from Jisho definitions', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
     expect(note.synonyms).toContain('to consume');
     expect(note.synonyms).toContain('to dine');
@@ -108,9 +119,12 @@ describe('generateNote', () => {
     const word = makeWord({
       senses: [
         {
-          glosses: ['a', 'b', 'c', 'd', 'e', 'f'],
-          pos: [],
-          language: 'English',
+          english_definitions: ['a', 'b', 'c', 'd', 'e', 'f'],
+          parts_of_speech: [],
+          tags: [],
+          info: [],
+          see_also: [],
+          restrictions: [],
         },
       ],
     });
@@ -122,9 +136,12 @@ describe('generateNote', () => {
     const word = makeWord({
       senses: [
         {
-          glosses: ['thing', 'stuff', 'matter', 'something', 'real meaning'],
-          pos: [],
-          language: 'English',
+          english_definitions: ['thing', 'stuff', 'matter', 'something', 'real meaning'],
+          parts_of_speech: [],
+          tags: [],
+          info: [],
+          see_also: [],
+          restrictions: [],
         },
       ],
     });
@@ -136,13 +153,16 @@ describe('generateNote', () => {
     expect(lower).not.toContain('something');
   });
 
-  it('skips glosses with more than 2 words', () => {
+  it('skips definitions with more than 2 words', () => {
     const word = makeWord({
       senses: [
         {
-          glosses: ['to eat up completely'],
-          pos: [],
-          language: 'English',
+          english_definitions: ['to eat up completely'],
+          parts_of_speech: [],
+          tags: [],
+          info: [],
+          see_also: [],
+          restrictions: [],
         },
       ],
     });
@@ -152,8 +172,6 @@ describe('generateNote', () => {
 
   it('includes WaniKani non-primary accepted meanings as synonyms', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
-    // "To Consume" is a non-primary accepted meaning
-    // It should appear (case-insensitively deduped with Jotoba's "to consume")
     const lower = note.synonyms.map((s: string) => s.toLowerCase());
     expect(lower).toContain('to consume');
   });
@@ -165,33 +183,63 @@ describe('generateNote', () => {
     expect(note.noteText).toContain('I eat breakfast every day.');
   });
 
-  it('includes parts of speech from Jotoba in extras', () => {
+  it('includes parts of speech from Jisho in extras', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
-    expect(note.noteText).toContain('Parts of speech: Ichidan Verb, Transitive Verb.');
+    expect(note.noteText).toContain('Parts of speech: Ichidan verb, Transitive verb.');
   });
 
-  it('formats nested pos objects correctly', () => {
+  it('includes info/notes from Jisho', () => {
     const word = makeWord({
       senses: [
         {
-          glosses: ['to eat'],
-          pos: [
-            { Noun: 'Normal' },
-            { Verb: { Irregular: 'NounOrAuxSuru' } },
-            { Verb: 'Transitive' },
-          ],
-          language: 'English',
+          english_definitions: ['to eat'],
+          parts_of_speech: ['Ichidan verb'],
+          tags: [],
+          info: ['colloquial'],
+          see_also: [],
+          restrictions: [],
         },
       ],
     });
     const note = generateNote(makeSubject(), [word], []);
-    expect(note.noteText).toContain('Normal Noun');
-    expect(note.noteText).toContain('Verb (Irregular: NounOrAuxSuru)');
-    expect(note.noteText).toContain('Transitive Verb');
-    expect(note.noteText).not.toContain('[object Object]');
+    expect(note.noteText).toContain('Notes: colloquial.');
   });
 
-  it('returns empty synonyms when no Jotoba match', () => {
+  it('includes see_also references from Jisho', () => {
+    const word = makeWord({
+      senses: [
+        {
+          english_definitions: ['to eat'],
+          parts_of_speech: ['Ichidan verb'],
+          tags: [],
+          info: [],
+          see_also: ['飲む'],
+          restrictions: [],
+        },
+      ],
+    });
+    const note = generateNote(makeSubject(), [word], []);
+    expect(note.noteText).toContain('See also: 飲む.');
+  });
+
+  it('includes tags from Jisho', () => {
+    const word = makeWord({
+      senses: [
+        {
+          english_definitions: ['to eat'],
+          parts_of_speech: ['Ichidan verb'],
+          tags: ['Usually written using kana alone'],
+          info: [],
+          see_also: [],
+          restrictions: [],
+        },
+      ],
+    });
+    const note = generateNote(makeSubject(), [word], []);
+    expect(note.noteText).toContain('Tags: Usually written using kana alone.');
+  });
+
+  it('returns empty synonyms when no Jisho match', () => {
     const note = generateNote(makeSubject(), [], []);
     expect(note.synonyms).toEqual([]);
   });
@@ -210,15 +258,17 @@ describe('generateNote', () => {
     expect(note.noteText).not.toContain('(undefined)');
   });
 
-  it('prefers exact kanji match over kana match', () => {
-    const words: JotobaWord[] = [
+  it('prefers exact slug match over other entries', () => {
+    const words: JishoWord[] = [
       makeWord({
-        reading: { kanji: '違う', kana: 'ちがう' },
-        senses: [{ glosses: ['wrong match'], pos: [], language: 'English' }],
+        slug: '違う',
+        japanese: [{ word: '違う', reading: 'ちがう' }],
+        senses: [{ english_definitions: ['wrong match'], parts_of_speech: [], tags: [], info: [], see_also: [], restrictions: [] }],
       }),
       makeWord({
-        reading: { kanji: '食べる', kana: 'たべる' },
-        senses: [{ glosses: ['to eat', 'to dine'], pos: [], language: 'English' }],
+        slug: '食べる',
+        japanese: [{ word: '食べる', reading: 'たべる' }],
+        senses: [{ english_definitions: ['to eat', 'to dine'], parts_of_speech: [], tags: [], info: [], see_also: [], restrictions: [] }],
       }),
     ];
     const note = generateNote(makeSubject(), words, []);
@@ -226,11 +276,12 @@ describe('generateNote', () => {
     expect(note.noteText).not.toContain('wrong match');
   });
 
-  it('falls back to first word if no kanji/kana match', () => {
-    const words: JotobaWord[] = [
+  it('falls back to first word if no slug match', () => {
+    const words: JishoWord[] = [
       makeWord({
-        reading: { kanji: '全然違う', kana: 'ぜんぜんちがう' },
-        senses: [{ glosses: ['fallback gloss'], pos: [], language: 'English' }],
+        slug: '全然違う',
+        japanese: [{ word: '全然違う', reading: 'ぜんぜんちがう' }],
+        senses: [{ english_definitions: ['fallback gloss'], parts_of_speech: [], tags: [], info: [], see_also: [], restrictions: [] }],
       }),
     ];
     const note = generateNote(makeSubject(), words, []);
@@ -249,15 +300,15 @@ describe('generateNote', () => {
       meanings: [{ meaning: 'To Eat', primary: true, accepted_answer: true }],
     });
     const word = makeWord({
-      senses: [{ glosses: ['to eat'], pos: [], language: 'English' }],
+      senses: [{ english_definitions: ['to eat'], parts_of_speech: [], tags: [], info: [], see_also: [], restrictions: [] }],
     });
     const note = generateNote(subject, [word], []);
     expect(note.noteText).not.toContain('Synonyms:');
   });
 
-  it('omits extras section when no Jotoba POS and no sentences', () => {
+  it('omits extras section when no POS, info, tags, or sentences', () => {
     const word = makeWord({
-      senses: [{ glosses: ['to eat', 'to dine'], language: 'English' }],
+      senses: [{ english_definitions: ['to eat', 'to dine'], parts_of_speech: [], tags: [], info: [], see_also: [], restrictions: [] }],
     });
     const note = generateNote(makeSubject(), [word], []);
     expect(note.noteText).not.toContain('Something more to add?');
