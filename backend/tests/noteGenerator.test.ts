@@ -30,7 +30,7 @@ function makeWord(overrides: Partial<JotobaWord> = {}): JotobaWord {
     senses: [
       {
         glosses: ['to eat', 'to consume', 'to dine'],
-        pos: ['Ichidan verb', 'Transitive verb'],
+        pos: [{ Verb: 'Ichidan' }, { Verb: 'Transitive' }],
         language: 'English',
       },
     ],
@@ -167,7 +167,7 @@ describe('generateNote', () => {
 
   it('includes parts of speech from Jotoba in extras', () => {
     const note = generateNote(makeSubject(), [makeWord()], []);
-    expect(note.noteText).toContain('Parts of speech: Ichidan verb, Transitive verb.');
+    expect(note.noteText).toContain('Parts of speech: Ichidan Verb, Transitive Verb.');
   });
 
   it('returns empty synonyms when no Jotoba match', () => {

@@ -139,6 +139,10 @@ function buildExtras(
   if (match) {
     const allPos = match.senses
       .flatMap((s: JotobaSense) => s.pos ?? [])
+      .map((p: Record<string, string>) => {
+        const [category, detail] = Object.entries(p)[0];
+        return `${detail} ${category}`.trim();
+      })
       .filter((p: string, i: number, a: string[]) => a.indexOf(p) === i);
     if (allPos.length > 0) {
       parts.push(`Parts of speech: ${allPos.join(', ')}.`);

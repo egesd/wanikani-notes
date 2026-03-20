@@ -78,7 +78,7 @@ const mockSubject: WKSubject = {
 const mockWord: JotobaWord = {
   reading: { kanji: '走る', kana: 'はしる' },
   common: true,
-  senses: [{ glosses: ['to run', 'to dash'], pos: ['Godan verb'], language: 'English' }],
+  senses: [{ glosses: ['to run', 'to dash'], pos: [{ Verb: 'Godan' }], language: 'English' }],
 };
 
 const mockSentence: JotobaSentence = {

@@ -42,7 +42,7 @@ export interface WKStudyMaterial {
 
 export interface JotobaSense {
   glosses: string[];
-  pos?: string[];
+  pos?: Record<string, string>[];
   language: string;
 }
 
