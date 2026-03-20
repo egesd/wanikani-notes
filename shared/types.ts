@@ -40,9 +40,11 @@ export interface WKStudyMaterial {
 
 // ── Jotoba types ──
 
+export type JotobaPos = Record<string, string | Record<string, string>>;
+
 export interface JotobaSense {
   glosses: string[];
-  pos?: Record<string, string>[];
+  pos?: JotobaPos[];
   language: string;
 }
 

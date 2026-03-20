@@ -3,6 +3,7 @@ import type {
   WKMeaning,
   WKReading,
   JotobaWord,
+  JotobaPos,
   JotobaSense,
   JotobaSentence,
   GeneratedNote,
@@ -139,10 +140,7 @@ function buildExtras(
   if (match) {
     const allPos = match.senses
       .flatMap((s: JotobaSense) => s.pos ?? [])
-      .map((p: Record<string, string>) => {
-        const [category, detail] = Object.entries(p)[0];
-        return `${detail} ${category}`.trim();
-      })
+      .map((p: JotobaPos) => formatPos(p))
       .filter((p: string, i: number, a: string[]) => a.indexOf(p) === i);
     if (allPos.length > 0) {
       parts.push(`Parts of speech: ${allPos.join(', ')}.`);
@@ -158,6 +156,16 @@ function buildExtras(
   }
 
   return parts.join('\n');
+}
+
+function formatPos(p: JotobaPos): string {
+  const [category, detail] = Object.entries(p)[0];
+  if (typeof detail === 'string') {
+    return `${detail} ${category}`;
+  }
+  // Nested object like {"Irregular": "NounOrAuxSuru"}
+  const [subType, subDetail] = Object.entries(detail)[0];
+  return `${category} (${subType}: ${subDetail})`;
 }
 
 function findBestMatch(

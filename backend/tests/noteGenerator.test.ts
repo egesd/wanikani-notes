@@ -170,6 +170,27 @@ describe('generateNote', () => {
     expect(note.noteText).toContain('Parts of speech: Ichidan Verb, Transitive Verb.');
   });
 
+  it('formats nested pos objects correctly', () => {
+    const word = makeWord({
+      senses: [
+        {
+          glosses: ['to eat'],
+          pos: [
+            { Noun: 'Normal' },
+            { Verb: { Irregular: 'NounOrAuxSuru' } },
+            { Verb: 'Transitive' },
+          ],
+          language: 'English',
+        },
+      ],
+    });
+    const note = generateNote(makeSubject(), [word], []);
+    expect(note.noteText).toContain('Normal Noun');
+    expect(note.noteText).toContain('Verb (Irregular: NounOrAuxSuru)');
+    expect(note.noteText).toContain('Transitive Verb');
+    expect(note.noteText).not.toContain('[object Object]');
+  });
+
   it('returns empty synonyms when no Jotoba match', () => {
     const note = generateNote(makeSubject(), [], []);
     expect(note.synonyms).toEqual([]);
