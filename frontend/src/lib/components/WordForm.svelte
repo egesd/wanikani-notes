@@ -16,6 +16,21 @@
     inputEl?.focus();
   }
 
+  const japanesePattern = /[\u3000-\u303f\u3040-\u309f\u30a0-\u30ff\u4e00-\u9faf\u{20000}-\u{2a6df}]/u;
+
+  async function pasteFromClipboard() {
+    try {
+      const text = await navigator.clipboard.readText();
+      const trimmed = text.trim();
+      if (trimmed && japanesePattern.test(trimmed)) {
+        word = trimmed;
+        inputEl?.focus();
+      }
+    } catch {
+      // Permission denied or no clipboard API — silently ignore
+    }
+  }
+
   function handleSubmit(e: Event) {
     e.preventDefault();
     const trimmed = word.trim();
@@ -28,6 +43,15 @@
     Find Vocabulary
   </label>
   <form onsubmit={handleSubmit} class="relative">
+    <button
+      type="button"
+      onclick={pasteFromClipboard}
+      disabled={loading || disabled}
+      class="absolute left-4 top-1/2 -translate-y-1/2 text-outline dark:text-zinc-500 hover:text-primary dark:hover:text-pink-400 disabled:text-outline-variant/50 transition-colors"
+      title="Paste from clipboard"
+    >
+      <span class="material-symbols-outlined text-2xl">content_paste</span>
+    </button>
     <input
       id="word-input"
       type="text"
@@ -36,7 +60,7 @@
       bind:value={word}
       disabled={loading || disabled}
       lang="ja"
-      class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg px-6 py-5 text-xl font-headline focus:ring-0 focus:bg-surface-container-lowest dark:focus:bg-zinc-700 transition-all duration-300 placeholder:text-outline-variant/50 dark:placeholder:text-zinc-600 text-on-surface dark:text-zinc-100 outline outline-1 outline-outline-variant/20 dark:outline-zinc-700 focus:outline-secondary disabled:opacity-50"
+      class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg pl-14 pr-14 py-5 text-xl font-headline focus:ring-0 focus:bg-surface-container-lowest dark:focus:bg-zinc-700 transition-all duration-300 placeholder:text-outline-variant/50 dark:placeholder:text-zinc-600 text-on-surface dark:text-zinc-100 outline outline-1 outline-outline-variant/20 dark:outline-zinc-700 focus:outline-secondary disabled:opacity-50"
     />
     <button
       type="submit"
