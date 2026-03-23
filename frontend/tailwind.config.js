@@ -5,53 +5,31 @@ export default {
   theme: {
     extend: {
       colors: {
-        'surface-container-high': '#e8e8e9',
-        'secondary': '#006398',
-        'inverse-primary': '#ffafd2',
-        'error': '#ba1a1a',
-        'tertiary-fixed-dim': '#edb1ff',
-        'surface-container-lowest': '#ffffff',
-        'on-primary-fixed': '#3d0025',
+        // Brand
         'primary': '#b10075',
-        'surface-tint': '#b60078',
+        'primary-container': '#de0094',
+        'secondary': '#006398',
+        'secondary-fixed': '#cce5ff',
         'tertiary': '#8e29b4',
-        'on-secondary': '#ffffff',
-        'primary-fixed-dim': '#ffafd2',
-        'surface-container-highest': '#e2e2e3',
-        'background': '#f9f9fa',
-        'secondary-fixed-dim': '#93ccff',
-        'tertiary-container': '#aa47d0',
+
+        // Surfaces
+        'surface-container-high': '#e8e8e9',
         'surface-container': '#eeeeef',
         'surface-container-low': '#f3f3f4',
-        'on-primary-container': '#fffbff',
+        'surface-container-lowest': '#ffffff',
+
+        // Text / foreground
         'on-surface': '#1a1c1d',
-        'secondary-container': '#00a9fd',
         'on-surface-variant': '#593f4a',
-        'surface-variant': '#e2e2e3',
-        'on-background': '#1a1c1d',
-        'on-secondary-container': '#003a5c',
-        'error-container': '#ffdad6',
-        'inverse-surface': '#2f3132',
-        'on-primary-fixed-variant': '#8b005b',
-        'on-tertiary-fixed': '#330045',
-        'inverse-on-surface': '#f0f1f2',
-        'primary-fixed': '#ffd8e7',
-        'on-error': '#ffffff',
-        'on-secondary-fixed-variant': '#004b73',
-        'outline': '#8d6f7b',
-        'on-secondary-fixed': '#001d31',
-        'outline-variant': '#e1bdcb',
-        'primary-container': '#de0094',
-        'tertiary-fixed': '#f9d8ff',
-        'on-error-container': '#93000a',
         'on-primary': '#ffffff',
-        'secondary-fixed': '#cce5ff',
-        'surface-dim': '#d9dadb',
-        'on-tertiary-fixed-variant': '#76009c',
-        'surface': '#f9f9fa',
-        'surface-bright': '#f9f9fa',
-        'on-tertiary': '#ffffff',
-        'on-tertiary-container': '#fffbff',
+
+        // Borders
+        'outline': '#8d6f7b',
+        'outline-variant': '#e1bdcb',
+
+        // Feedback
+        'error': '#ba1a1a',
+        'error-container': '#ffdad6',
       },
       fontFamily: {
         headline: ['Manrope', 'sans-serif'],

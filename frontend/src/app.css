@@ -103,7 +103,8 @@ html.dark {
 
 .theme-toggle.dark .toggle-thumb {
   transform: translateX(32px);
-  background: #2a2a3a;
+  background: #3b3b55;
+  box-shadow: 0 0 6px rgba(251, 191, 36, 0.35), 0 1px 4px rgba(0, 0, 0, 0.4);
 }
 
 .toggle-icon {
@@ -124,8 +125,8 @@ html.dark {
 
 .toggle-icon.moon {
   right: 8px;
-  color: #cbd5e1;
-  opacity: 0.4;
+  color: #64748b;
+  opacity: 0.6;
 }
 
 .theme-toggle.dark .toggle-icon.sun {
