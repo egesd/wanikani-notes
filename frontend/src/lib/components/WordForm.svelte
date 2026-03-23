@@ -10,6 +10,11 @@
   } = $props();
 
   let word = $state('');
+  let inputEl: HTMLInputElement;
+
+  export function focus() {
+    inputEl?.focus();
+  }
 
   function handleSubmit(e: Event) {
     e.preventDefault();
@@ -27,6 +32,7 @@
       id="word-input"
       type="text"
       placeholder="Type a word in Japanese..."
+      bind:this={inputEl}
       bind:value={word}
       disabled={loading || disabled}
       lang="ja"

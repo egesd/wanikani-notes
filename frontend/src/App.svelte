@@ -1,4 +1,5 @@
 <script lang="ts">
+  import { tick } from 'svelte';
   import type { WKSubject, JishoWord, JotobaSentence, LookupResponse } from '@shared/types';
   import { lookup, generate, save } from './lib/api';
   import { loadTheme, saveTheme, applyTheme, type Theme } from './lib/themeStore';
@@ -157,6 +158,14 @@
     return () => window.removeEventListener('popstate', handlePopState);
   });
 
+  let wordFormRef = $state<ReturnType<typeof WordForm>>();
+
+  $effect(() => {
+    if (phase === 'idle' && hasToken) {
+      tick().then(() => wordFormRef?.focus());
+    }
+  });
+
   function reset(fromPopState = false) {
     if (!fromPopState && phase !== 'idle') {
       // If we're navigating away from a history-tracked phase, go back properly
@@ -175,7 +184,7 @@
 </script>
 
 <!-- TopAppBar -->
-<header class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-950/80 backdrop-blur-xl shadow-xl shadow-pink-900/5 dark:shadow-none">
+<header class="sticky top-0 z-50 bg-white/80 dark:bg-zinc-900/80 backdrop-blur-xl shadow-xl shadow-pink-900/5 dark:shadow-zinc-950/50">
   <div class="flex justify-between items-center w-full px-6 py-4 max-w-5xl mx-auto">
     <button onclick={() => reset()} class="flex items-center gap-2 hover:opacity-80 transition-opacity cursor-pointer bg-transparent border-none p-0">
       <img src="/assets/KaniNotesLogoDark.png" alt="KaniNotes" class="h-14 w-auto" />
@@ -228,7 +237,7 @@
         <TokenInput bind:token onTokenChange={(t) => (token = t)} />
 
         <!-- Search Section -->
-        <WordForm onSubmit={handleLookup} loading={phase === 'loading'} disabled={!hasToken} />
+        <WordForm bind:this={wordFormRef} onSubmit={handleLookup} loading={phase === 'loading'} disabled={!hasToken} />
       </div>
     </div>
 
