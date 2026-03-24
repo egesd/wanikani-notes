@@ -1,11 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
 import dictionaryRoutes from './routes/dictionary.js';
 import generateRoutes from './routes/generate.js';
 import wanikaniRoutes from './routes/wanikani.js';
 
 const app = express();
-const PORT = 3001;
+const PORT = parseInt(process.env.PORT || '3001', 10);
 
 app.use(cors());
 app.use(express.json());
@@ -14,8 +15,15 @@ app.use('/api', dictionaryRoutes);
 app.use('/api', generateRoutes);
 app.use('/api', wanikaniRoutes);
 
-const server = app.listen(PORT, () => {
-  console.log(`Backend running on http://localhost:${PORT}`);
+// In production, serve the frontend build
+const frontendDist = path.join(process.cwd(), 'frontend/dist');
+app.use(express.static(frontendDist));
+app.get('*', (_req, res) => {
+  res.sendFile(path.join(frontendDist, 'index.html'));
+});
+
+const server = app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Backend running on http://0.0.0.0:${PORT}`);
 });
 
 // Allow tsx watch to kill the process cleanly
