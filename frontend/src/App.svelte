@@ -242,22 +242,22 @@
     </div>
 
     <!-- Decorative Grid -->
-    <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 w-full opacity-40 grayscale hover:grayscale-0 transition-all duration-700 pointer-events-none">
-      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
-        <span class="text-4xl text-primary dark:text-pink-400 font-headline">雨</span>
-        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Rain</span>
+    <div class="mt-16 grid grid-cols-2 md:grid-cols-4 gap-6 w-full opacity-90 dark:opacity-80 hover:grayscale-0 transition-all duration-700 pointer-events-none">
+      <div class="bg-surface-container dark:bg-zinc-800/80 dark:shadow-[0_0_20px_rgba(236,72,153,0.15)] p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-primary dark:text-pink-400 dark:drop-shadow-[0_0_8px_rgba(236,72,153,0.5)] font-headline">雨</span>
+        <span class="font-label text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-zinc-300">Rain</span>
       </div>
-      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
-        <span class="text-4xl text-secondary dark:text-blue-400 font-headline">海</span>
-        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Sea</span>
+      <div class="bg-surface-container dark:bg-zinc-800/80 dark:shadow-[0_0_20px_rgba(96,165,250,0.15)] p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-secondary dark:text-blue-400 dark:drop-shadow-[0_0_8px_rgba(96,165,250,0.5)] font-headline">海</span>
+        <span class="font-label text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-zinc-300">Sea</span>
       </div>
-      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
-        <span class="text-4xl text-tertiary dark:text-purple-400 font-headline">光</span>
-        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Light</span>
+      <div class="bg-surface-container dark:bg-zinc-800/80 dark:shadow-[0_0_20px_rgba(192,132,252,0.15)] p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square">
+        <span class="text-4xl text-tertiary dark:text-purple-400 dark:drop-shadow-[0_0_8px_rgba(192,132,252,0.5)] font-headline">光</span>
+        <span class="font-label text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-zinc-300">Light</span>
       </div>
-      <div class="bg-surface-container dark:bg-zinc-800 p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
-        <span class="text-4xl text-primary dark:text-pink-400 font-headline">友</span>
-        <span class="font-label text-[10px] tracking-widest uppercase dark:text-zinc-400">Friend</span>
+      <div class="bg-surface-container dark:bg-zinc-800/80 dark:shadow-[0_0_20px_rgba(236,72,153,0.15)] p-6 rounded-lg flex flex-col items-center justify-center gap-2 aspect-square translate-y-4">
+        <span class="text-4xl text-primary dark:text-pink-400 dark:drop-shadow-[0_0_8px_rgba(236,72,153,0.5)] font-headline">友</span>
+        <span class="font-label text-[10px] tracking-widest uppercase text-on-surface-variant dark:text-zinc-300">Friend</span>
       </div>
     </div>
   </main>
