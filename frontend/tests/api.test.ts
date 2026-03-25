@@ -15,7 +15,7 @@ describe('lookup', () => {
   it('sends POST to /api/lookup with word and token', async () => {
     mockFetch.mockResolvedValue({
       ok: true,
-      json: () => Promise.resolve({ subjects: [], words: [], sentences: [] }),
+      json: () => Promise.resolve({ subjects: [], lexical: [], sentences: [] }),
     });
 
     await lookup('走る', 'my-token');
@@ -28,7 +28,7 @@ describe('lookup', () => {
   });
 
   it('returns parsed response on success', async () => {
-    const expected = { subjects: [{ id: 1 }], words: [], sentences: [] };
+    const expected = { subjects: [{ id: 1 }], lexical: [], sentences: [] };
     mockFetch.mockResolvedValue({
       ok: true,
       json: () => Promise.resolve(expected),
@@ -64,7 +64,7 @@ describe('generate', () => {
   it('sends POST to /api/generate', async () => {
     const body = {
       subject: { id: 1 } as any,
-      words: [],
+      lexical: [],
       sentences: [],
     };
     mockFetch.mockResolvedValue({
@@ -87,7 +87,7 @@ describe('generate', () => {
       json: () => Promise.resolve({ noteText: 'Context:\ntest', synonyms: ['a'] }),
     });
 
-    const result = await generate({ subject: {} as any, words: [], sentences: [] });
+    const result = await generate({ subject: {} as any, lexical: [], sentences: [] });
     expect(result.noteText).toContain('Context:');
     expect(result.synonyms).toEqual(['a']);
   });

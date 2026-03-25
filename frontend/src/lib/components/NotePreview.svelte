@@ -103,7 +103,7 @@
           <textarea
             id="note-textarea"
             bind:value={noteText}
-            rows="12"
+            rows="20"
             class="w-full bg-surface-container-low dark:bg-zinc-800 border-none rounded-lg font-body text-on-surface dark:text-zinc-100 p-4 leading-relaxed focus:ring-1 focus:ring-primary/30 min-h-[280px] resize-y"
           ></textarea>
         </div>
@@ -191,7 +191,7 @@
     <div class="bg-white/40 dark:bg-zinc-800/60 backdrop-blur-md p-4 rounded-xl border border-white/20 dark:border-zinc-700/30 flex items-start gap-3">
       <span class="material-symbols-outlined text-tertiary dark:text-purple-400">info</span>
       <p class="font-body text-xs text-on-surface-variant dark:text-zinc-400 leading-relaxed">
-        Generated from Jisho dictionary data. Review before saving.
+        Generated from Jotoba, Jisho, and Tatoeba data. Review before saving.
       </p>
     </div>
   </div>

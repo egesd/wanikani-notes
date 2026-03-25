@@ -1,6 +1,6 @@
 <script lang="ts">
   import { tick } from 'svelte';
-  import type { WKSubject, JishoWord, JotobaSentence, LookupResponse } from '@shared/types';
+  import type { WKSubject, LexicalEntry, SentenceExample, LookupResponse } from '@shared/types';
   import { lookup, generate, save } from './lib/api';
   import { loadTheme, saveTheme, applyTheme, type Theme } from './lib/themeStore';
   import TokenInput from './lib/components/TokenInput.svelte';
@@ -16,8 +16,8 @@
 
   // lookup results
   let subjects = $state<WKSubject[]>([]);
-  let words = $state<JishoWord[]>([]);
-  let sentences = $state<JotobaSentence[]>([]);
+  let lexical = $state<LexicalEntry[]>([]);
+  let sentences = $state<SentenceExample[]>([]);
 
   // selected subject + generated note
   let selectedSubject = $state<WKSubject | null>(null);
@@ -76,7 +76,7 @@
       }
 
       subjects = result.subjects;
-      words = result.words;
+      lexical = result.lexical;
       sentences = result.sentences;
 
       if (subjects.length === 0) {
@@ -103,7 +103,7 @@
     clearStatus();
 
     try {
-      const result = await generate({ subject, words, sentences });
+      const result = await generate({ subject, lexical, sentences });
       noteText = result.noteText;
       synonyms = result.synonyms;
       phase = 'preview';
@@ -174,7 +174,7 @@
     }
     phase = 'idle';
     subjects = [];
-    words = [];
+    lexical = [];
     sentences = [];
     selectedSubject = null;
     noteText = '';

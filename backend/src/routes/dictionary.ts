@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { searchSubjects } from '../services/wanikani.js';
-import { searchWords } from '../services/jisho.js';
-import { searchSentences } from '../services/jotoba.js';
+import { fetchLexical } from '../services/lexicalService.js';
+import { fetchSentences } from '../services/sentenceService.js';
 import type { LookupRequest, LookupResponse } from '@shared/types.js';
 
 const router = Router();
@@ -15,14 +15,14 @@ router.post('/lookup', async (req, res) => {
       return;
     }
 
-    // Run all three lookups in parallel
-    const [subjects, words, sentences] = await Promise.all([
+    // Run all lookups in parallel
+    const [subjects, lexical, sentences] = await Promise.all([
       searchSubjects(token, word),
-      searchWords(word),
-      searchSentences(word),
+      fetchLexical(word),
+      fetchSentences(word),
     ]);
 
-    const response: LookupResponse = { subjects, words, sentences };
+    const response: LookupResponse = { subjects, lexical, sentences };
     res.json(response);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Lookup failed';

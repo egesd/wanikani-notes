@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import express from 'express';
-import type { WKSubject, JishoWord, JotobaSentence } from '@shared/types';
+import type { WKSubject, LexicalEntry, SentenceExample } from '@shared/types';
 
 // ── Mock external services ──
 
@@ -11,18 +11,26 @@ vi.mock('../src/services/wanikani.js', () => ({
   updateStudyMaterial: vi.fn(),
 }));
 
-vi.mock('../src/services/jisho.js', () => ({
-  searchWords: vi.fn(),
-}));
+vi.mock('../src/services/lexicalService.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/services/lexicalService.js')>();
+  return {
+    ...actual,
+    fetchLexical: vi.fn(),
+  };
+});
 
-vi.mock('../src/services/jotoba.js', () => ({
-  searchSentences: vi.fn(),
-}));
+vi.mock('../src/services/sentenceService.js', async (importOriginal) => {
+  const actual = await importOriginal<typeof import('../src/services/sentenceService.js')>();
+  return {
+    ...actual,
+    fetchSentences: vi.fn(),
+  };
+});
 
 // Import after mocking
 import { searchSubjects, getStudyMaterials, createStudyMaterial, updateStudyMaterial } from '../src/services/wanikani.js';
-import { searchWords } from '../src/services/jisho.js';
-import { searchSentences } from '../src/services/jotoba.js';
+import { fetchLexical } from '../src/services/lexicalService.js';
+import { fetchSentences } from '../src/services/sentenceService.js';
 import dictionaryRoutes from '../src/routes/dictionary.js';
 import generateRoutes from '../src/routes/generate.js';
 import wanikaniRoutes from '../src/routes/wanikani.js';
@@ -79,27 +87,23 @@ const mockSubject: WKSubject = {
   },
 };
 
-const mockWord: JishoWord = {
-  slug: '走る',
-  is_common: true,
+const mockLexical: LexicalEntry = {
+  word: '走る',
+  reading: 'はしる',
+  glosses: ['to run', 'to dash'],
+  partsOfSpeech: ['Godan verb'],
+  common: true,
+  jlpt: 'JLPT-N4',
   tags: [],
-  jlpt: ['jlpt-n4'],
-  japanese: [{ word: '走る', reading: 'はしる' }],
-  senses: [{
-    english_definitions: ['to run', 'to dash'],
-    parts_of_speech: ['Godan verb'],
-    tags: [],
-    info: [],
-    see_also: [],
-    restrictions: [],
-  }],
+  info: [],
+  seeAlso: [],
+  source: 'jotoba',
 };
 
-const mockSentence: JotobaSentence = {
-  content: '犬が走る。',
-  furigana: 'いぬがはしる。',
-  translation: 'The dog runs.',
-  language: 'English',
+const mockSentence: SentenceExample = {
+  japanese: '犬が走る。',
+  english: 'The dog runs.',
+  source: 'tatoeba',
 };
 
 // ── Tests ──
@@ -123,37 +127,37 @@ describe('POST /api/lookup', () => {
     expect(res.body.error).toContain('word and token are required');
   });
 
-  it('returns subjects, words, and sentences on success', async () => {
+  it('returns subjects, lexical, and sentences on success', async () => {
     vi.mocked(searchSubjects).mockResolvedValue([mockSubject]);
-    vi.mocked(searchWords).mockResolvedValue([mockWord]);
-    vi.mocked(searchSentences).mockResolvedValue([mockSentence]);
+    vi.mocked(fetchLexical).mockResolvedValue([mockLexical]);
+    vi.mocked(fetchSentences).mockResolvedValue([mockSentence]);
 
     const app = createApp();
     const res = await post(app, '/api/lookup', { word: '走る', token: 'tok' });
     expect(res.status).toBe(200);
     expect(res.body.subjects).toHaveLength(1);
-    expect(res.body.words).toHaveLength(1);
+    expect(res.body.lexical).toHaveLength(1);
     expect(res.body.sentences).toHaveLength(1);
     expect(res.body.subjects[0].data.characters).toBe('走る');
   });
 
-  it('calls all three services in parallel', async () => {
+  it('calls all services in parallel', async () => {
     vi.mocked(searchSubjects).mockResolvedValue([]);
-    vi.mocked(searchWords).mockResolvedValue([]);
-    vi.mocked(searchSentences).mockResolvedValue([]);
+    vi.mocked(fetchLexical).mockResolvedValue([]);
+    vi.mocked(fetchSentences).mockResolvedValue([]);
 
     const app = createApp();
     await post(app, '/api/lookup', { word: '走る', token: 'tok' });
 
     expect(searchSubjects).toHaveBeenCalledWith('tok', '走る');
-    expect(searchWords).toHaveBeenCalledWith('走る');
-    expect(searchSentences).toHaveBeenCalledWith('走る');
+    expect(fetchLexical).toHaveBeenCalledWith('走る');
+    expect(fetchSentences).toHaveBeenCalledWith('走る');
   });
 
   it('returns 401 when WaniKani auth fails', async () => {
     vi.mocked(searchSubjects).mockRejectedValue(new Error('WaniKani subjects error: 401'));
-    vi.mocked(searchWords).mockResolvedValue([]);
-    vi.mocked(searchSentences).mockResolvedValue([]);
+    vi.mocked(fetchLexical).mockResolvedValue([]);
+    vi.mocked(fetchSentences).mockResolvedValue([]);
 
     const app = createApp();
     const res = await post(app, '/api/lookup', { word: '走る', token: 'bad' });
@@ -163,8 +167,8 @@ describe('POST /api/lookup', () => {
 
   it('returns 500 for unexpected errors', async () => {
     vi.mocked(searchSubjects).mockRejectedValue(new Error('network down'));
-    vi.mocked(searchWords).mockResolvedValue([]);
-    vi.mocked(searchSentences).mockResolvedValue([]);
+    vi.mocked(fetchLexical).mockResolvedValue([]);
+    vi.mocked(fetchSentences).mockResolvedValue([]);
 
     const app = createApp();
     const res = await post(app, '/api/lookup', { word: '走る', token: 'tok' });
@@ -190,11 +194,11 @@ describe('POST /api/generate', () => {
     expect(Array.isArray(res.body.synonyms)).toBe(true);
   });
 
-  it('generates a note with words and sentences', async () => {
+  it('generates a note with lexical and sentences', async () => {
     const app = createApp();
     const res = await post(app, '/api/generate', {
       subject: mockSubject,
-      words: [mockWord],
+      lexical: [mockLexical],
       sentences: [mockSentence],
     });
     expect(res.status).toBe(200);
@@ -203,11 +207,11 @@ describe('POST /api/generate', () => {
     expect(res.body.synonyms).toContain('to dash');
   });
 
-  it('handles missing words/sentences gracefully', async () => {
+  it('handles missing lexical/sentences gracefully', async () => {
     const app = createApp();
     const res = await post(app, '/api/generate', {
       subject: mockSubject,
-      words: null,
+      lexical: null,
       sentences: null,
     });
     expect(res.status).toBe(200);

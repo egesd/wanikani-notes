@@ -72,6 +72,75 @@ export interface JotobaSentence {
   language: string;
 }
 
+// ── Jotoba word types ──
+
+export interface JotobaWordReading {
+  kana: string;
+  kanji?: string;
+}
+
+export interface JotobaSense {
+  glosses: string[];
+  pos: string[];
+  misc: string[];
+  field: string[];
+  dialect: string[];
+  xref: string[];
+  antonym: string[];
+  information: string;
+}
+
+export interface JotobaWord {
+  reading: JotobaWordReading;
+  senses: JotobaSense[];
+  common: boolean;
+}
+
+// ── Tatoeba types ──
+
+export interface TatoebaTranscription {
+  html: string;
+  script: string;
+}
+
+export interface TatoebaTranslation {
+  id: number;
+  text: string;
+  lang: string;
+}
+
+export interface TatoebaSentence {
+  id: number;
+  text: string;
+  lang: string;
+  translations: TatoebaTranslation[][];
+  transcriptions: TatoebaTranscription[];
+}
+
+// ── Unified provider types ──
+
+export interface LexicalEntry {
+  word: string;
+  reading?: string;
+  glosses: string[];
+  partsOfSpeech: string[];
+  jlpt?: string;
+  common?: boolean;
+  tags?: string[];
+  info?: string[];
+  seeAlso?: string[];
+  fields?: string[];
+  antonyms?: string[];
+  source: 'jotoba' | 'jisho';
+}
+
+export interface SentenceExample {
+  japanese: string;
+  english?: string;
+  furiganaHtml?: string;
+  source: 'tatoeba' | 'jotoba';
+}
+
 // ── App request/response types ──
 
 export interface LookupRequest {
@@ -81,14 +150,14 @@ export interface LookupRequest {
 
 export interface LookupResponse {
   subjects: WKSubject[];
-  words: JishoWord[];
-  sentences: JotobaSentence[];
+  lexical: LexicalEntry[];
+  sentences: SentenceExample[];
 }
 
 export interface GenerateRequest {
   subject: WKSubject;
-  words: JishoWord[];
-  sentences: JotobaSentence[];
+  lexical: LexicalEntry[];
+  sentences: SentenceExample[];
 }
 
 export interface GeneratedNote {
