@@ -196,11 +196,6 @@
         <p class="font-body text-xs text-on-surface-variant dark:text-zinc-400 leading-relaxed">
           Built from Jotoba, Jisho & Tatoeba — focused on disambiguation. Review before saving.
         </p>
-        {#if omitted && omitted.length > 0}
-          <p class="font-body text-xs text-on-surface-variant/60 dark:text-zinc-500 mt-1">
-            Omitted (weak evidence): {omitted.join(', ')}
-          </p>
-        {/if}
       </div>
     </div>
   </div>
