@@ -138,3 +138,22 @@ html.dark {
   opacity: 1;
   color: #fbbf24;
 }
+
+/* Input focus glow effect */
+.input-glow {
+  transition: outline-color 0.3s, box-shadow 0.3s, background-color 0.3s;
+}
+
+.input-glow:focus {
+  outline-width: 2px;
+}
+
+.input-glow:hover:not(:focus):not(:disabled) {
+  outline-color: rgba(177, 0, 117, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+}
+
+.dark .input-glow:hover:not(:focus):not(:disabled) {
+  outline-color: rgba(236, 72, 153, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}

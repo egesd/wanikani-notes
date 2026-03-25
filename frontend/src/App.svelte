@@ -225,16 +225,28 @@
     </div>
 
     <!-- Central Action Card -->
-    <div class="w-full max-w-2xl bg-surface-container-lowest dark:bg-zinc-900 rounded-lg p-8 md:p-12 relative group">
+    <div class="w-full max-w-2xl bg-surface-container-lowest dark:bg-zinc-900 rounded-2xl p-8 md:p-12 relative group shadow-xl shadow-black/[0.03] dark:shadow-black/30 ring-1 ring-black/[0.03] dark:ring-white/[0.06]">
       {#if !hasToken}
-        <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3">
+        <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3 animate-pulse">
           Setup Required
         </div>
       {/if}
 
-      <div class="space-y-10">
+      <div class="space-y-8">
         <!-- API Token Section -->
         <TokenInput bind:token onTokenChange={(t) => (token = t)} />
+
+        <!-- Divider -->
+        <div class="relative">
+          <div class="absolute inset-0 flex items-center">
+            <div class="w-full border-t border-outline-variant/20 dark:border-zinc-700/50"></div>
+          </div>
+          <div class="relative flex justify-center">
+            <span class="bg-surface-container-lowest dark:bg-zinc-900 px-4">
+              <span class="material-symbols-outlined text-outline-variant/40 dark:text-zinc-600 text-sm">arrow_downward</span>
+            </span>
+          </div>
+        </div>
 
         <!-- Search Section -->
         <WordForm bind:this={wordFormRef} onSubmit={handleLookup} loading={phase === 'loading'} disabled={!hasToken} />
