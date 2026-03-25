@@ -18,6 +18,9 @@ COPY frontend/ frontend/
 # Build backend + frontend
 RUN npm run build
 
+# Create data directory for SQLite
+RUN mkdir -p /app/data
+
 # Expose the port Fly assigns
 EXPOSE 3001
 

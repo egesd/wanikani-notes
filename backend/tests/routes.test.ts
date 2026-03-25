@@ -27,6 +27,16 @@ vi.mock('../src/services/sentenceService.js', async (importOriginal) => {
   };
 });
 
+vi.mock('../src/services/db.js', () => ({
+  getCachedNote: vi.fn().mockReturnValue(undefined),
+  setCachedNote: vi.fn(),
+  deleteCachedNote: vi.fn(),
+}));
+
+vi.mock('../src/services/llmService.js', () => ({
+  generateLLMNote: vi.fn().mockResolvedValue(undefined),
+}));
+
 // Import after mocking
 import { searchSubjects, getStudyMaterials, createStudyMaterial, updateStudyMaterial } from '../src/services/wanikani.js';
 import { fetchLexical } from '../src/services/lexicalService.js';
