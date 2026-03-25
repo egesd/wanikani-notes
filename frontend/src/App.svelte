@@ -23,6 +23,7 @@
   let selectedSubject = $state<WKSubject | null>(null);
   let noteText = $state('');
   let synonyms = $state<string[]>([]);
+  let omitted = $state<string[]>([]);
 
   // status
   let statusMessage = $state('');
@@ -106,6 +107,7 @@
       const result = await generate({ subject, lexical, sentences });
       noteText = result.noteText;
       synonyms = result.synonyms;
+      omitted = result.omitted ?? [];
       phase = 'preview';
       pushPhase('preview');
     } catch (err) {
@@ -179,6 +181,7 @@
     selectedSubject = null;
     noteText = '';
     synonyms = [];
+    omitted = [];
     clearStatus();
   }
 </script>
@@ -300,6 +303,7 @@
         subject={selectedSubject}
         bind:noteText
         bind:synonyms
+        {omitted}
         onSave={handleSave}
         saving={phase === 'saving'}
       />

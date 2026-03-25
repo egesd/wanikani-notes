@@ -1,6 +1,7 @@
 import type { SentenceExample, TatoebaSentence, JotobaSentence } from '@shared/types.js';
 import * as tatoebaProvider from './tatoeba.js';
 import * as jotobaProvider from './jotoba.js';
+import { cacheGet, cacheSet } from './cacheService.js';
 
 function tatoebaToSentence(s: TatoebaSentence): SentenceExample {
   // translations is [[direct], [indirect]] — search both levels
@@ -88,6 +89,10 @@ export function rankSentences(
  * Both sources are merged; failures are tolerated.
  */
 export async function fetchSentences(word: string): Promise<SentenceExample[]> {
+  const cacheKey = `sentences:${word}`;
+  const cached = cacheGet<SentenceExample[]>(cacheKey);
+  if (cached) return cached;
+
   const [tatoebaResult, jotobaResult] = await Promise.allSettled([
     tatoebaProvider.searchSentences(word),
     jotobaProvider.searchSentences(word),
@@ -103,5 +108,6 @@ export async function fetchSentences(word: string): Promise<SentenceExample[]> {
     sentences.push(...jotobaResult.value.map(jotobaToSentence));
   }
 
+  cacheSet(cacheKey, sentences);
   return sentences;
 }

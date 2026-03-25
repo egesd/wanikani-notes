@@ -5,12 +5,14 @@ import {
   createStudyMaterial,
   updateStudyMaterial,
 } from '../src/services/wanikani.js';
+import { cacheClear } from '../src/services/cacheService.js';
 
 const mockFetch = vi.fn();
 vi.stubGlobal('fetch', mockFetch);
 
 beforeEach(() => {
   vi.clearAllMocks();
+  cacheClear();
 });
 
 describe('searchSubjects', () => {

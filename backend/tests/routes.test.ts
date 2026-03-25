@@ -189,7 +189,6 @@ describe('POST /api/generate', () => {
     const app = createApp();
     const res = await post(app, '/api/generate', { subject: mockSubject });
     expect(res.status).toBe(200);
-    expect(res.body.noteText).toContain('走る');
     expect(res.body.noteText).toContain('To Run');
     expect(Array.isArray(res.body.synonyms)).toBe(true);
   });

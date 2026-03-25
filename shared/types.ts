@@ -141,6 +141,32 @@ export interface SentenceExample {
   source: 'tatoeba' | 'jotoba';
 }
 
+// ── Disambiguation types ──
+
+export interface CompareWord {
+  word: string;
+  reading?: string;
+  explanation: string;
+}
+
+export interface EnrichedNote {
+  word: string;
+  reading?: string;
+  coreMeaning: string;
+  usedFor: string;
+  register?: string;
+  safeSynonyms: string[];
+  compare?: CompareWord;
+  commonPatterns: string[];
+  example?: SentenceExample;
+  extraNotes: string[];
+}
+
+export interface NoteGenerationInput {
+  word: string;
+  subjectId?: number;
+}
+
 // ── App request/response types ──
 
 export interface LookupRequest {
@@ -163,6 +189,7 @@ export interface GenerateRequest {
 export interface GeneratedNote {
   noteText: string;
   synonyms: string[];
+  omitted?: string[];
 }
 
 export interface SaveRequest {

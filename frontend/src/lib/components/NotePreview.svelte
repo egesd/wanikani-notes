@@ -5,12 +5,14 @@
     subject,
     noteText = $bindable(''),
     synonyms = $bindable<string[]>([]),
+    omitted = [],
     onSave,
     saving = false,
   }: {
     subject: WKSubject;
     noteText: string;
     synonyms: string[];
+    omitted?: string[];
     onSave: () => void;
     saving?: boolean;
   } = $props();
@@ -91,14 +93,14 @@
   <div class="lg:col-span-8 space-y-8">
     <div class="bg-surface-container-lowest dark:bg-zinc-900 p-8 rounded-xl shadow-sm relative overflow-hidden">
       <div class="flex items-center justify-between mb-8">
-        <h3 class="font-headline font-bold text-xl text-on-surface dark:text-zinc-100">Generated Note</h3>
+        <h3 class="font-headline font-bold text-xl text-on-surface dark:text-zinc-100">Disambiguation Note</h3>
       </div>
 
       <div class="space-y-6">
         <!-- Context Section -->
         <div>
           <label for="note-textarea" class="font-label text-[10px] font-bold text-outline dark:text-zinc-500 uppercase tracking-[0.2em] mb-2 block">
-            Context & Nuance
+            Meaning Note
           </label>
           <textarea
             id="note-textarea"
@@ -190,9 +192,16 @@
     <!-- Info Tooltip -->
     <div class="bg-white/40 dark:bg-zinc-800/60 backdrop-blur-md p-4 rounded-xl border border-white/20 dark:border-zinc-700/30 flex items-start gap-3">
       <span class="material-symbols-outlined text-tertiary dark:text-purple-400">info</span>
-      <p class="font-body text-xs text-on-surface-variant dark:text-zinc-400 leading-relaxed">
-        Generated from Jotoba, Jisho, and Tatoeba data. Review before saving.
-      </p>
+      <div>
+        <p class="font-body text-xs text-on-surface-variant dark:text-zinc-400 leading-relaxed">
+          Built from Jotoba, Jisho & Tatoeba — focused on disambiguation. Review before saving.
+        </p>
+        {#if omitted && omitted.length > 0}
+          <p class="font-body text-xs text-on-surface-variant/60 dark:text-zinc-500 mt-1">
+            Omitted (weak evidence): {omitted.join(', ')}
+          </p>
+        {/if}
+      </div>
     </div>
   </div>
 </div>

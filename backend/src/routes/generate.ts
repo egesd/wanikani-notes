@@ -13,7 +13,7 @@ router.post('/generate', async (req, res) => {
       return;
     }
 
-    const note: GeneratedNote = composeNote(subject, lexical ?? [], sentences ?? []);
+    const note: GeneratedNote = await composeNote(subject, lexical ?? [], sentences ?? []);
     res.json(note);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Generation failed';

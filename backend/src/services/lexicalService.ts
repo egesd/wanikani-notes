@@ -1,6 +1,7 @@
 import type { LexicalEntry, JotobaWord, JishoWord } from '@shared/types.js';
 import * as jotobaProvider from './jotoba.js';
 import * as jishoProvider from './jisho.js';
+import { cacheGet, cacheSet } from './cacheService.js';
 
 /** Convert a Jotoba word result into a unified LexicalEntry. */
 function jotobaToLexical(w: JotobaWord): LexicalEntry {
@@ -70,6 +71,10 @@ export function findBestEntry(
  * Both are fetched in parallel for speed.
  */
 export async function fetchLexical(word: string): Promise<LexicalEntry[]> {
+  const cacheKey = `lexical:${word}`;
+  const cached = cacheGet<LexicalEntry[]>(cacheKey);
+  if (cached) return cached;
+
   const [jotobaResult, jishoResult] = await Promise.allSettled([
     jotobaProvider.searchWords(word),
     jishoProvider.searchWords(word),
@@ -84,12 +89,15 @@ export async function fetchLexical(word: string): Promise<LexicalEntry[]> {
       supplementFromJisho(entries, jishoResult.value);
     }
 
+    cacheSet(cacheKey, entries);
     return entries;
   }
 
   // Fall back to Jisho
   if (jishoResult.status === 'fulfilled' && jishoResult.value.length > 0) {
-    return jishoResult.value.map(jishoToLexical);
+    const fallback = jishoResult.value.map(jishoToLexical);
+    cacheSet(cacheKey, fallback);
+    return fallback;
   }
 
   return [];

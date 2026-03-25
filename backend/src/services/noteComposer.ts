@@ -5,18 +5,20 @@ import type {
   LexicalEntry,
   SentenceExample,
   GeneratedNote,
+  EnrichedNote,
+  CompareWord,
 } from '@shared/types.js';
 import { findBestEntry } from './lexicalService.js';
 import { rankSentences } from './sentenceService.js';
+import { findCompareCandidate, findCompareCandidateAsync } from './compareWordService.js';
 
 // ── Public API ──
 
-export function composeNote(
+export async function composeNote(
   subject: WKSubject,
   lexical: LexicalEntry[],
   sentences: SentenceExample[],
-): GeneratedNote {
-  // Sanitize incoming data — external API payloads may contain nulls
+): Promise<GeneratedNote> {
   const safeLexical = lexical.map(sanitizeEntry);
 
   const chars = subject.data.characters;
@@ -28,107 +30,114 @@ export function composeNote(
   const entry = findBestEntry(chars, safeLexical);
   const ranked = rankSentences(sentences, chars);
 
-  const sections: string[] = [];
+  const enriched: EnrichedNote = {
+    word: chars,
+    reading: primaryReading || undefined,
+    coreMeaning: buildCoreMeaning(primaryMeaning, entry),
+    usedFor: buildUsedFor(entry),
+    register: inferRegister(entry),
+    safeSynonyms: extractSynonyms(primaryMeaning, subject, entry),
+    compare: await buildCompare(entry, safeLexical),
+    commonPatterns: extractPatterns(chars, ranked, entry),
+    example: pickBestExample(ranked),
+    extraNotes: [],
+  };
 
-  // Context
-  const context = buildContext(chars, primaryReading, primaryMeaning, entry);
-  sections.push(`Context:\n${context}`);
-
-  // Register
-  const register = inferRegister(entry);
-  if (register) {
-    sections.push(`Register:\n${register}`);
-  }
-
-  // Synonyms
-  const synonyms = extractSynonyms(primaryMeaning, subject, entry);
-  if (synonyms.length > 0) {
-    sections.push(`Synonyms:\n${synonyms.map((s) => `- ${s}`).join('\n')}`);
-  }
-
-  // Compare
-  const compare = buildCompare(chars, entry);
-  if (compare) {
-    sections.push(`Compare:\n${compare}`);
-  }
-
-  // Common patterns
-  const patterns = extractPatterns(chars, ranked, entry);
-  if (patterns.length > 0) {
-    sections.push(
-      `Common patterns:\n${patterns.join('\n')}`,
-    );
-  }
-
-  // Something more to add?
-  const extras = buildExtras(entry, subject);
-  if (extras) {
-    sections.push(`Something more to add?\n${extras}`);
-  }
-
-  // Example
-  const example = pickBestExample(ranked);
-  if (example) {
-    let exLine = `Example:\n${example.japanese}`;
-    if (example.english) exLine += `\n→ ${example.english}`;
-    sections.push(exLine);
-  }
+  const omitted = detectOmitted(enriched);
 
   return {
-    noteText: sections.join('\n\n'),
-    synonyms,
+    noteText: renderNote(enriched),
+    synonyms: enriched.safeSynonyms,
+    omitted: omitted.length > 0 ? omitted : undefined,
   };
 }
 
-// ── Helpers ──
+// ── Rendering ──
 
-function buildContext(
-  word: string,
-  reading: string,
+function renderNote(note: EnrichedNote): string {
+  const sections: string[] = [];
+
+  sections.push(`Core meaning:\n${note.coreMeaning}`);
+  sections.push(`Used for:\n${note.usedFor}`);
+
+  if (note.register) {
+    sections.push(`Register:\n${note.register}`);
+  }
+
+  if (note.compare) {
+    let line = note.compare.word;
+    if (note.compare.reading) line += ` (${note.compare.reading})`;
+    line += `\n${note.compare.explanation}`;
+    sections.push(`Do not confuse with:\n${line}`);
+  }
+
+  if (note.commonPatterns.length > 0) {
+    sections.push(`Common patterns:\n${note.commonPatterns.join('\n')}`);
+  }
+
+  if (note.example) {
+    let exLine = note.example.japanese;
+    if (note.example.english) exLine += `\n→ ${note.example.english}`;
+    sections.push(`Example:\n${exLine}`);
+  }
+
+  return sections.join('\n\n');
+}
+
+function detectOmitted(note: EnrichedNote): string[] {
+  const omitted: string[] = [];
+  if (!note.register) omitted.push('Register');
+  if (!note.compare) omitted.push('Do not confuse with');
+  if (note.commonPatterns.length === 0) omitted.push('Common patterns');
+  if (!note.example) omitted.push('Example');
+  return omitted;
+}
+
+// ── Section Builders ──
+
+function buildCoreMeaning(
   primaryMeaning: string,
   entry: LexicalEntry | undefined,
 ): string {
-  let line = word;
-  if (reading) line += ` (${reading})`;
-  line += ` means "${primaryMeaning}"`;
+  if (!entry) return primaryMeaning;
 
-  if (entry) {
-    // Add extra glosses that differ from primary meaning
-    const extraGlosses = entry.glosses
-      .filter((g) => g.toLowerCase() !== primaryMeaning.toLowerCase())
-      .slice(0, 2);
-    if (extraGlosses.length > 0) {
-      line += ` — also: ${extraGlosses.join(', ')}`;
-    }
-    line += '.';
+  const extra = entry.glosses.find(
+    (g) => g.toLowerCase() !== primaryMeaning.toLowerCase(),
+  );
+  if (extra) {
+    return `${primaryMeaning} (${extra})`;
+  }
+  return primaryMeaning;
+}
 
-    // Usage context line
-    const usageParts: string[] = [];
+function buildUsedFor(entry: LexicalEntry | undefined): string {
+  if (!entry) return 'General use.';
 
-    if (entry.fields && entry.fields.length > 0) {
-      usageParts.push(
-        `Commonly used in ${entry.fields.join(', ')} contexts`,
-      );
-    } else if (entry.common === false) {
-      usageParts.push(
-        'A less common word, typically found in formal or specialized contexts',
-      );
-    } else if (entry.common) {
-      usageParts.push('A commonly used word in everyday Japanese');
-    }
+  const parts: string[] = [];
 
-    if (entry.jlpt) {
-      usageParts.push(entry.jlpt);
-    }
-
-    if (usageParts.length > 0) {
-      line += ` ${usageParts.join('. ')}.`;
-    }
-  } else {
-    line += '.';
+  if (entry.fields && entry.fields.length > 0) {
+    parts.push(
+      `Typically used in ${entry.fields.join(' and ')} contexts`,
+    );
   }
 
-  return line;
+  if (entry.common === false) {
+    parts.push('Less common; found in formal or specialized writing');
+  } else if (entry.common && !(entry.fields && entry.fields.length > 0)) {
+    parts.push('Commonly used in everyday Japanese');
+  }
+
+  if (entry.info && entry.info.length > 0) {
+    const relevant = entry.info.filter((i) => i.length > 0);
+    if (relevant.length > 0) parts.push(relevant.join('; '));
+  }
+
+  if (entry.jlpt) {
+    parts.push(entry.jlpt);
+  }
+
+  if (parts.length === 0) return 'General use.';
+  return parts.join('. ') + '.';
 }
 
 function inferRegister(entry: LexicalEntry | undefined): string | undefined {
@@ -139,12 +148,14 @@ function inferRegister(entry: LexicalEntry | undefined): string | undefined {
     ...(entry.info ?? []),
     ...(entry.fields ?? []),
     ...entry.partsOfSpeech,
-  ].filter(Boolean).map((t) => t.toLowerCase());
+  ]
+    .filter(Boolean)
+    .map((t) => t.toLowerCase());
 
   if (allTokens.some((t) => t.includes('honorific') || t.includes('sonkeigo')))
-    return 'Formal / honorific (sonkeigo).';
+    return 'Formal / honorific.';
   if (allTokens.some((t) => t.includes('humble') || t.includes('kenjougo')))
-    return 'Formal / humble (kenjougo).';
+    return 'Formal / humble.';
   if (allTokens.some((t) => t.includes('polite')))
     return 'Polite / formal.';
   if (allTokens.some((t) => t.includes('formal') || t.includes('literary')))
@@ -156,7 +167,6 @@ function inferRegister(entry: LexicalEntry | undefined): string | undefined {
   if (allTokens.some((t) => t.includes('vulgar')))
     return 'Vulgar / informal.';
 
-  // Domain-based register
   const fields = entry.fields ?? [];
   if (fields.some((f) => /law|legal/i.test(f))) return 'Formal / legal.';
   if (fields.some((f) => /medicine|medical/i.test(f)))
@@ -171,7 +181,7 @@ function inferRegister(entry: LexicalEntry | undefined): string | undefined {
 
 /**
  * Extract safe synonyms for WaniKani meaning_synonyms.
- * Only short, unambiguous English equivalents that won't cause wrong answers.
+ * Only short, unambiguous English equivalents.
  */
 function extractSynonyms(
   primaryMeaning: string,
@@ -191,20 +201,17 @@ function extractSynonyms(
     if (seen.has(key)) return;
     if (key === primaryLower) return;
     if (BLOCKED.has(key)) return;
-    // Skip multi-word phrases (more than 3 words)
     if (text.split(/\s+/).length > 3) return;
     seen.add(key);
     candidates.push(text);
   }
 
-  // From lexical glosses
   if (entry) {
     for (const gloss of entry.glosses) {
       addCandidate(gloss.trim());
     }
   }
 
-  // From WaniKani accepted (non-primary) meanings
   for (const m of subject.data.meanings) {
     if (!m.primary && m.accepted_answer) {
       addCandidate(m.meaning);
@@ -214,23 +221,21 @@ function extractSynonyms(
   return candidates.slice(0, 4);
 }
 
-function buildCompare(
-  word: string,
+async function buildCompare(
   entry: LexicalEntry | undefined,
-): string | undefined {
+  allEntries: LexicalEntry[],
+): Promise<CompareWord | undefined> {
   if (!entry) return undefined;
 
-  const seeAlso = entry.seeAlso ?? [];
-  if (seeAlso.length === 0) return undefined;
+  // Actively search for homophones and seeAlso words
+  const candidate = await findCompareCandidateAsync(entry, allEntries);
+  if (candidate) return candidate;
 
-  const compareWord = seeAlso[0];
-  return `- ${word} vs ${compareWord}`;
+  return undefined;
 }
 
 /**
  * Extract common usage patterns from sentence evidence and POS data.
- * Each pattern includes the collocation and, when available, the source
- * sentence's English translation for context.
  */
 function extractPatterns(
   word: string,
@@ -239,31 +244,25 @@ function extractPatterns(
 ): string[] {
   const patterns: string[] = [];
 
-  // For suru verbs, generate the standard pattern
   const isSuru =
     entry?.partsOfSpeech.some((p) => /suru|する/i.test(p)) ?? false;
   if (isSuru) {
     patterns.push(`- Xを${word}する`);
   }
 
-  // Extract real collocations from sentence evidence
   for (const s of sentences) {
     if (patterns.length >= 3) break;
     const text = s.japanese;
     const idx = text.indexOf(word);
     if (idx < 1) continue;
 
-    // Look for "noun + particle + word" before the target
     const before = text.slice(Math.max(0, idx - 20), idx);
     const match = before.match(
       /([\u4e00-\u9faf\u3040-\u309f\u30a0-\u30ff]{1,8}[をがにでと])$/u,
     );
     if (!match) continue;
 
-    const afterWord = text.slice(
-      idx + word.length,
-      idx + word.length + 3,
-    );
+    const afterWord = text.slice(idx + word.length, idx + word.length + 3);
     let suffix = '';
     if (isSuru && /^[しすさせそ]/.test(afterWord)) {
       suffix = 'する';
@@ -282,55 +281,18 @@ function extractPatterns(
   return patterns.slice(0, 3);
 }
 
-function buildExtras(
-  entry: LexicalEntry | undefined,
-  subject: WKSubject,
-): string | undefined {
-  const parts: string[] = [];
-
-  // Parts of speech
-  const pos = entry?.partsOfSpeech ?? subject.data.parts_of_speech ?? [];
-  if (pos.length > 0) {
-    parts.push(`Parts of speech: ${pos.join(', ')}.`);
-  }
-
-  // Usage notes / info
-  const info = entry?.info ?? [];
-  if (info.length > 0) {
-    parts.push(`Notes: ${info.join('; ')}.`);
-  }
-
-  // See-also references
-  const seeAlso = (entry?.seeAlso ?? []).slice(0, 3);
-  if (seeAlso.length > 0) {
-    parts.push(`See also: ${seeAlso.join(', ')}.`);
-  }
-
-  // Tags
-  const tags = entry?.tags ?? [];
-  if (tags.length > 0) {
-    parts.push(`Tags: ${tags.join(', ')}.`);
-  }
-
-  // Antonyms
-  const antonyms = entry?.antonyms ?? [];
-  if (antonyms.length > 0) {
-    parts.push(`Antonyms: ${antonyms.join(', ')}.`);
-  }
-
-  return parts.length > 0 ? parts.join('\n') : undefined;
-}
-
 function pickBestExample(
   ranked: SentenceExample[],
 ): SentenceExample | undefined {
   return ranked[0];
 }
 
-/** Strip nulls/non-strings from all string-array fields of a LexicalEntry. */
+/** Strip nulls/non-strings from all string-array fields. */
 function sanitizeEntry(e: LexicalEntry): LexicalEntry {
   const strs = (arr: unknown): string[] =>
-    Array.isArray(arr) ? arr.filter((v): v is string => typeof v === 'string') : [];
+    Array.isArray(arr)
+      ? arr.filter((v): v is string => typeof v === 'string')
+      : [];
   return {
     ...e,
     glosses: strs(e.glosses),
