@@ -20,11 +20,11 @@ import fs from 'fs';
 import path from 'path';
 import OpenAI from 'openai';
 import Database from 'better-sqlite3';
-import { SYSTEM_PROMPT, buildPrompt, type PromptInput } from '../backend/src/services/promptBuilder.js';
-import { fetchLexical, findBestEntry } from '../backend/src/services/lexicalService.js';
-import { fetchSentences, rankSentences } from '../backend/src/services/sentenceService.js';
-import { findCompareCandidateAsync } from '../backend/src/services/compareWordService.js';
-import type { WKSubject, LexicalEntry } from '../shared/types.js';
+import { SYSTEM_PROMPT, buildPrompt, type PromptInput } from '../src/services/promptBuilder.js';
+import { fetchLexical, findBestEntry } from '../src/services/lexicalService.js';
+import { fetchSentences, rankSentences } from '../src/services/sentenceService.js';
+import { findCompareCandidateAsync } from '../src/services/compareWordService.js';
+import type { WKSubject, LexicalEntry } from '@shared/types.js';
 
 const WK_TOKEN = process.env.WANIKANI_TOKEN;
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
@@ -60,9 +60,9 @@ async function fetchAllSubjects(): Promise<WKSubject[]> {
   console.log('Fetching all WaniKani vocabulary subjects...');
 
   while (url) {
-    const res = await fetch(url, { headers: WK_HEADERS });
+    const res: Response = await fetch(url, { headers: WK_HEADERS });
     if (!res.ok) throw new Error(`WaniKani API error: ${res.status}`);
-    const json = await res.json();
+    const json: any = await res.json();
     subjects.push(...(json.data as WKSubject[]));
     url = json.pages?.next_url ?? null;
     process.stdout.write(`\r  Fetched ${subjects.length} subjects...`);
@@ -119,7 +119,7 @@ async function buildPromptForSubject(
       subject.data.meanings.find((m) => m.primary)?.meaning ?? '';
     const synonyms = entry
       ? entry.glosses
-          .filter((g) => g.toLowerCase() !== primaryMeaning.toLowerCase())
+          .filter((g: string) => g.toLowerCase() !== primaryMeaning.toLowerCase())
           .slice(0, 4)
       : [];
 
@@ -140,7 +140,7 @@ interface BatchLine {
     model: string;
     messages: { role: string; content: string }[];
     temperature: number;
-    max_tokens: number;
+    max_completion_tokens: number;
   };
 }
 
@@ -158,7 +158,7 @@ function writeBatchJsonl(
         { role: 'user', content: item.prompt },
       ],
       temperature: 0.3,
-      max_tokens: 500,
+      max_completion_tokens: 500,
     },
   }));
 

@@ -15,14 +15,14 @@ Your note should help the learner:
 3. Avoid confusing it with homophones or near-synonyms
 
 Rules:
-- Write 2-4 short sentences max. No bullet points, no section headers.
-- First sentence: what this word specifically means and when you'd use it (not just a dictionary definition).
-- If there's a confusion pair, explain when to pick which word in plain English.
+- Write entirely in English. The only Japanese allowed is the word itself and inline example sentences.
+- Write 2-4 short sentences max. No bullet points, no headers, no labels like "Example:".
+- Do NOT restate the English meaning or reading — the learner already knows those from WaniKani. Jump straight into what's distinctive: nuance, typical usage context, what kinds of things it applies to, or how it differs from similar words.
+- If there's a confusion pair, explain when to pick which word. But if the confusion candidate is obscure or the learner is unlikely to encounter it, ignore it and focus on more useful distinctions (e.g. comparing with common synonyms from the dictionary data or seeAlso).
 - Mention formality/register only if it's notable (don't say "neutral register").
-- Include one natural example usage if it helps clarify, inline.
-- Skip anything the learner already knows from WaniKani (the basic English meaning and reading).
+- Weave in one natural example sentence if it helps clarify — inline, not labeled. Write the Japanese sentence followed by → and the English translation (e.g. 彼は走った → He ran).
 - Write for someone who knows ~1000 kanji and basic grammar. Don't over-explain.
-- Be direct. No filler like "This word is used to..." — just say what it does.`;
+- Be direct and natural. No filler phrases like "This word is used to..." or "X means Y" — jump right into the nuance.`;
 
 export interface PromptInput {
   subject: WKSubject;

@@ -17,13 +17,14 @@ export function scoreCandidate(
 ): number {
   let score = 0;
 
-  // Same reading = strongest signal (homophones)
+  // Same reading = strongest signal (homophones), but only if
+  // the candidate is a common word (obscure homophones aren't useful)
   if (
     target.reading &&
     candidate.reading &&
     target.reading === candidate.reading
   ) {
-    score += 10;
+    score += candidate.common ? 10 : 2;
   }
 
   // Overlapping English glosses

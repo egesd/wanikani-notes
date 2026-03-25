@@ -1,25 +1,19 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { generateLLMNote } from '../src/services/llmService.js';
 
-// Mock the openai module
-vi.mock('openai', () => {
-  const mockCreate = vi.fn();
-  return {
-    default: class {
-      chat = { completions: { create: mockCreate } };
-    },
-    __mockCreate: mockCreate,
-  };
-});
+const mockCreate = vi.fn();
 
-// Access the mock
-import { __mockCreate } from 'openai';
-const mockCreate = __mockCreate as ReturnType<typeof vi.fn>;
+vi.mock('openai', () => ({
+  default: class {
+    chat = { completions: { create: mockCreate } };
+  },
+}));
+
+// Must import after vi.mock
+const { generateLLMNote } = await import('../src/services/llmService.js');
 
 describe('generateLLMNote', () => {
   beforeEach(() => {
     mockCreate.mockReset();
-    // Set the env var so the client initializes
     process.env.OPENAI_API_KEY = 'test-key';
   });
 

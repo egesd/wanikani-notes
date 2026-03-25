@@ -1,6 +1,14 @@
+import dotenv from 'dotenv';
+import path from 'path';
+const envResult = dotenv.config({ path: path.resolve(import.meta.dirname, '../../.env') });
+if (envResult.error) console.error('[dotenv] Error:', envResult.error.message);
+// Strip any non-ASCII chars that sneak in via copy-paste
+if (process.env.OPENAI_API_KEY) {
+  process.env.OPENAI_API_KEY = process.env.OPENAI_API_KEY.replace(/[^\x20-\x7E]/g, '').trim();
+}
+console.log('[dotenv] OPENAI_API_KEY set:', !!process.env.OPENAI_API_KEY, 'length:', process.env.OPENAI_API_KEY?.length);
 import express from 'express';
 import cors from 'cors';
-import path from 'path';
 import dictionaryRoutes from './routes/dictionary.js';
 import generateRoutes from './routes/generate.js';
 import wanikaniRoutes from './routes/wanikani.js';
@@ -26,5 +34,14 @@ const server = app.listen(PORT, '0.0.0.0', () => {
   console.log(`Backend running on http://0.0.0.0:${PORT}`);
 });
 
-// Allow tsx watch to kill the process cleanly
-process.on('SIGTERM', () => process.exit(0));
+// Close DB and server cleanly so tsx watch can restart without hanging
+import { closeDb } from './services/db.js';
+
+function shutdown() {
+  closeDb();
+  server.close();
+  process.exit(0);
+}
+
+process.on('SIGTERM', shutdown);
+process.on('SIGINT', shutdown);

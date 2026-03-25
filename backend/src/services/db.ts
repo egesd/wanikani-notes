@@ -2,7 +2,7 @@ import Database from 'better-sqlite3';
 import path from 'path';
 import fs from 'fs';
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const DB_DIR = path.resolve(import.meta.dirname, '../../../data');
 const DB_PATH = path.join(DB_DIR, 'notes.db');
 
 let db: Database.Database | null = null;

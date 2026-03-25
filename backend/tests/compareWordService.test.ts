@@ -18,14 +18,24 @@ function makeEntry(overrides: Partial<LexicalEntry> = {}): LexicalEntry {
 }
 
 describe('scoreCandidate', () => {
-  it('scores same-reading candidates highest', () => {
+  it('scores common same-reading candidates highest', () => {
     const target = makeEntry({ word: '捕獲', reading: 'ほかく' });
-    const homophone = makeEntry({ word: '補角', reading: 'ほかく', glosses: ['supplementary angle'] });
+    const homophone = makeEntry({ word: '補角', reading: 'ほかく', glosses: ['supplementary angle'], common: true });
     const synonym = makeEntry({ word: '捕捉', reading: 'ほそく', glosses: ['capture', 'apprehension'] });
 
     const homoScore = scoreCandidate(target, homophone);
     const synScore = scoreCandidate(target, synonym);
     expect(homoScore).toBeGreaterThan(synScore);
+  });
+
+  it('scores uncommon homophones lower than strong synonyms', () => {
+    const target = makeEntry({ word: '捕獲', reading: 'ほかく' });
+    const uncommonHomophone = makeEntry({ word: '補角', reading: 'ほかく', glosses: ['supplementary angle'] });
+    const synonym = makeEntry({ word: '捕捉', reading: 'ほそく', glosses: ['capture', 'apprehension'] });
+
+    const homoScore = scoreCandidate(target, uncommonHomophone);
+    const synScore = scoreCandidate(target, synonym);
+    expect(synScore).toBeGreaterThan(homoScore);
   });
 
   it('scores overlapping glosses', () => {
@@ -106,9 +116,9 @@ describe('findCompareCandidate', () => {
     ];
 
     const result = findCompareCandidate(target, entries);
-    // Homophone should win (same reading = 10 points)
+    // Synonym with gloss overlap + shared kanji beats uncommon homophone
     expect(result).toBeDefined();
-    expect(result!.word).toBe('補角');
+    expect(result!.word).toBe('捕捉');
   });
 
   it('returns undefined when no candidate scores high enough', () => {

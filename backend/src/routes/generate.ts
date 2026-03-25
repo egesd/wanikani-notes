@@ -65,6 +65,7 @@ router.post('/generate', async (req, res) => {
 
     if (llmText) {
       // Cache and return LLM note
+      console.log(`[LLM] Generated note for ${word} (${llmText.length} chars)`);
       setCachedNote(word, llmText, fallbackNote.synonyms);
       res.json({
         noteText: llmText,
@@ -74,6 +75,7 @@ router.post('/generate', async (req, res) => {
     }
 
     // 4. Fallback to rule-based note
+    console.log(`[LLM] Fallback for ${word} (no API key or LLM failed)`);
     res.json(fallbackNote);
   } catch (err) {
     const message = err instanceof Error ? err.message : 'Generation failed';

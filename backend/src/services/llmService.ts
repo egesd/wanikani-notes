@@ -5,7 +5,7 @@ let client: OpenAI | null = null;
 
 function getClient(): OpenAI | null {
   if (client) return client;
-  const apiKey = process.env.OPENAI_API_KEY;
+  const apiKey = process.env.OPENAI_API_KEY?.replace(/[^\x20-\x7E]/g, '').trim();
   if (!apiKey) return null;
   client = new OpenAI({ apiKey });
   return client;
@@ -29,11 +29,12 @@ export async function generateLLMNote(
         { role: 'user', content: userPrompt },
       ],
       temperature: 0.3,
-      max_tokens: 500,
+      max_completion_tokens: 500,
     });
 
     return response.choices[0]?.message?.content?.trim() || undefined;
-  } catch {
+  } catch (err) {
+    console.error('[LLM] API error:', err);
     return undefined;
   }
 }
