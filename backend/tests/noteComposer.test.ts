@@ -71,20 +71,31 @@ describe('composeNote', () => {
   });
 
   describe('Core meaning section', () => {
-    it('includes primary meaning', async () => {
+    it('omits core meaning when no external signal', async () => {
       const note = await composeNote(makeSubject(), [makeLexical()], []);
+      expect(note.noteText).not.toContain('Core meaning:');
+      expect(note.omitted).toContain('Core meaning');
+    });
+
+    it('includes core meaning when fields provide context', async () => {
+      const entry = makeLexical({ fields: ['law'] });
+      const note = await composeNote(makeSubject(), [entry], []);
+      expect(note.noteText).toContain('Core meaning:');
+      expect(note.noteText).toContain('law');
+    });
+
+    it('includes core meaning when sentence objects found', async () => {
+      const sentences: SentenceExample[] = [
+        { japanese: '犯人を捕獲した', english: 'Captured the criminal', source: 'tatoeba' },
+      ];
+      const note = await composeNote(makeSubject(), [makeLexical()], sentences);
       expect(note.noteText).toContain('Core meaning:');
       expect(note.noteText).toContain('Capture');
     });
 
-    it('adds extra gloss for nuance', async () => {
-      const note = await composeNote(makeSubject(), [makeLexical()], []);
-      expect(note.noteText).toMatch(/Core meaning:\n.*seizure/i);
-    });
-
-    it('works without lexical data', async () => {
+    it('omits core meaning without lexical data', async () => {
       const note = await composeNote(makeSubject(), [], []);
-      expect(note.noteText).toContain('Core meaning:\nCapture');
+      expect(note.noteText).not.toContain('Core meaning:');
     });
   });
 
@@ -94,9 +105,9 @@ describe('composeNote', () => {
       expect(note.noteText).toContain('Used for:');
     });
 
-    it('marks common words', async () => {
+    it('omits filler for common words', async () => {
       const note = await composeNote(makeSubject(), [makeLexical()], []);
-      expect(note.noteText).toContain('Everyday use');
+      expect(note.noteText).not.toContain('Everyday use');
     });
 
     it('marks uncommon words', async () => {
@@ -116,9 +127,10 @@ describe('composeNote', () => {
       expect(note.noteText).toContain('law');
     });
 
-    it('defaults to general use without data', async () => {
+    it('omits used for without data', async () => {
       const note = await composeNote(makeSubject(), [], []);
-      expect(note.noteText).toContain('General use.');
+      expect(note.noteText).not.toContain('Used for:');
+      expect(note.omitted).toContain('Used for');
     });
   });
 
@@ -332,10 +344,11 @@ describe('composeNote', () => {
   });
 
   describe('Edge cases', () => {
-    it('works with no lexical data', async () => {
+    it('produces empty note with no lexical data', async () => {
       const note = await composeNote(makeSubject(), [], []);
-      expect(note.noteText).toContain('Core meaning:');
-      expect(note.noteText).toContain('Capture');
+      expect(note.noteText).toBe('');
+      expect(note.omitted).toContain('Core meaning');
+      expect(note.omitted).toContain('Used for');
     });
 
     it('works with kana_vocabulary subjects (no readings)', async () => {
@@ -347,7 +360,7 @@ describe('composeNote', () => {
       });
       subject.object = 'kana_vocabulary';
       const note = await composeNote(subject, [], []);
-      expect(note.noteText).toContain('Properly');
+      expect(note.noteText).toBe('');
     });
 
     it('omits empty optional sections for sparse data', async () => {
@@ -379,7 +392,8 @@ describe('composeNote', () => {
         makeLexical({ word: '捕獲', glosses: ['capture', 'seizure'] }),
       ];
       const note = await composeNote(makeSubject(), entries, []);
-      expect(note.noteText).toContain('seizure');
+      // The correct entry is selected (seizure in synonyms proves it)
+      expect(note.synonyms).toContain('seizure');
     });
 
     it('note format has correct section order', async () => {

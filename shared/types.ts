@@ -152,8 +152,8 @@ export interface CompareWord {
 export interface EnrichedNote {
   word: string;
   reading?: string;
-  coreMeaning: string;
-  usedFor: string;
+  coreMeaning?: string;
+  usedFor?: string;
   register?: string;
   safeSynonyms: string[];
   compare?: CompareWord;

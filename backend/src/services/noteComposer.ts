@@ -43,9 +43,10 @@ export async function composeNote(
     extraNotes: [],
   };
 
-  // Fix #5: suppress "Used for" redundancy when register already says it
+  // Suppress "Used for" redundancy when register already says it
   if (enriched.register && enriched.usedFor) {
-    enriched.usedFor = deduplicateWithRegister(enriched.usedFor, enriched.register);
+    const deduped = deduplicateWithRegister(enriched.usedFor, enriched.register);
+    enriched.usedFor = deduped === 'General use.' ? undefined : deduped;
   }
 
   const omitted = detectOmitted(enriched);
@@ -62,8 +63,13 @@ export async function composeNote(
 function renderNote(note: EnrichedNote): string {
   const sections: string[] = [];
 
-  sections.push(`Core meaning:\n${note.coreMeaning}`);
-  sections.push(`Used for:\n${note.usedFor}`);
+  if (note.coreMeaning) {
+    sections.push(`Core meaning:\n${note.coreMeaning}`);
+  }
+
+  if (note.usedFor) {
+    sections.push(`Used for:\n${note.usedFor}`);
+  }
 
   if (note.register) {
     sections.push(`Register:\n${note.register}`);
@@ -91,6 +97,8 @@ function renderNote(note: EnrichedNote): string {
 
 function detectOmitted(note: EnrichedNote): string[] {
   const omitted: string[] = [];
+  if (!note.coreMeaning) omitted.push('Core meaning');
+  if (!note.usedFor) omitted.push('Used for');
   if (!note.register) omitted.push('Register');
   if (!note.compare) omitted.push('Do not confuse with');
   if (note.commonPatterns.length === 0) omitted.push('Common patterns');
@@ -108,8 +116,8 @@ function buildCoreMeaning(
   primaryMeaning: string,
   entry: LexicalEntry | undefined,
   sentences: SentenceExample[],
-): string {
-  if (!entry) return primaryMeaning;
+): string | undefined {
+  if (!entry) return undefined;
 
   // Gather distinguishing context: fields, POS, info
   const qualifiers: string[] = [];
@@ -125,21 +133,17 @@ function buildCoreMeaning(
     qualifiers.push(`of ${objects.join(', ')}`);
   }
 
-  // Add a non-primary gloss only if it adds real nuance
-  const extra = entry.glosses.find(
-    (g) => g.toLowerCase() !== primaryMeaning.toLowerCase() && g.split(/\s+/).length <= 3,
-  );
-
   if (qualifiers.length > 0) {
+    const extra = entry.glosses.find(
+      (g) => g.toLowerCase() !== primaryMeaning.toLowerCase() && g.split(/\s+/).length <= 3,
+    );
     let meaning = primaryMeaning;
     if (extra) meaning += ` / ${extra}`;
     return `${meaning} (${qualifiers.join('; ')})`;
   }
 
-  if (extra) {
-    return `${primaryMeaning} — also "${extra}"`;
-  }
-  return primaryMeaning;
+  // No external signal beyond what WaniKani already shows — omit
+  return undefined;
 }
 
 /**
@@ -179,23 +183,19 @@ function buildUsedFor(
   entry: LexicalEntry | undefined,
   sentences: SentenceExample[],
   word: string,
-): string {
-  if (!entry) return 'General use.';
+): string | undefined {
+  if (!entry) return undefined;
 
   const parts: string[] = [];
 
-  // Domain context from fields
+  // Domain context from fields — this is real external signal
   if (entry.fields && entry.fields.length > 0) {
     parts.push(`Typically used in ${entry.fields.join(' and ')} contexts`);
   }
 
-  // Only add commonality if we don't already have domain context
-  if (parts.length === 0) {
-    if (entry.common === false) {
-      parts.push('Less common; found in formal or specialized writing');
-    } else if (entry.common) {
-      parts.push('Everyday use');
-    }
+  // Uncommon marker — WaniKani doesn't surface this
+  if (entry.common === false) {
+    parts.push('Less common; found in formal or specialized writing');
   }
 
   // Info notes from dictionary (but skip register-like ones — those go in Register)
@@ -210,7 +210,9 @@ function buildUsedFor(
     parts.push(entry.jlpt);
   }
 
-  if (parts.length === 0) return 'General use.';
+  // If we only have JLPT and nothing else, that's borderline filler — but keep it
+  // since WaniKani doesn't show JLPT level
+  if (parts.length === 0) return undefined;
   return parts.join('. ') + '.';
 }
 
