@@ -96,7 +96,7 @@ describe('composeNote', () => {
 
     it('marks common words', async () => {
       const note = await composeNote(makeSubject(), [makeLexical()], []);
-      expect(note.noteText).toContain('Commonly used');
+      expect(note.noteText).toContain('Everyday use');
     });
 
     it('marks uncommon words', async () => {
@@ -253,8 +253,16 @@ describe('composeNote', () => {
   });
 
   describe('Common patterns section', () => {
-    it('generates suru verb pattern', async () => {
+    it('omits suru template when no sentence patterns exist', async () => {
       const note = await composeNote(makeSubject(), [makeLexical()], []);
+      expect(note.noteText).not.toContain('Common patterns:');
+    });
+
+    it('includes suru template alongside sentence patterns', async () => {
+      const sentences: SentenceExample[] = [
+        { japanese: '野生動物を捕獲する方法', english: 'How to capture wild animals', source: 'tatoeba' },
+      ];
+      const note = await composeNote(makeSubject(), [makeLexical()], sentences);
       expect(note.noteText).toContain('Common patterns:');
       expect(note.noteText).toContain('- Xを捕獲する');
     });

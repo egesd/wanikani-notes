@@ -33,8 +33,8 @@ export async function composeNote(
   const enriched: EnrichedNote = {
     word: chars,
     reading: primaryReading || undefined,
-    coreMeaning: buildCoreMeaning(primaryMeaning, entry),
-    usedFor: buildUsedFor(entry),
+    coreMeaning: buildCoreMeaning(primaryMeaning, entry, ranked),
+    usedFor: buildUsedFor(entry, ranked, chars),
     register: inferRegister(entry),
     safeSynonyms: extractSynonyms(primaryMeaning, subject, entry),
     compare: await buildCompare(entry, safeLexical),
@@ -42,6 +42,11 @@ export async function composeNote(
     example: pickBestExample(ranked),
     extraNotes: [],
   };
+
+  // Fix #5: suppress "Used for" redundancy when register already says it
+  if (enriched.register && enriched.usedFor) {
+    enriched.usedFor = deduplicateWithRegister(enriched.usedFor, enriched.register);
+  }
 
   const omitted = detectOmitted(enriched);
 
@@ -95,40 +100,109 @@ function detectOmitted(note: EnrichedNote): string[] {
 
 // ── Section Builders ──
 
+/**
+ * Build a core meaning that adds distinction beyond the WaniKani gloss.
+ * Instead of just "Capture (seizure)", tries to say *what kind of* capture.
+ */
 function buildCoreMeaning(
   primaryMeaning: string,
   entry: LexicalEntry | undefined,
+  sentences: SentenceExample[],
 ): string {
   if (!entry) return primaryMeaning;
 
+  // Gather distinguishing context: fields, POS, info
+  const qualifiers: string[] = [];
+
+  // Domain qualifier from fields
+  if (entry.fields && entry.fields.length > 0) {
+    qualifiers.push(entry.fields.join('/'));
+  }
+
+  // Extract typical objects from sentence evidence (nouns before を + word)
+  const objects = extractTypicalObjects(entry.word, sentences);
+  if (objects.length > 0) {
+    qualifiers.push(`of ${objects.join(', ')}`);
+  }
+
+  // Add a non-primary gloss only if it adds real nuance
   const extra = entry.glosses.find(
-    (g) => g.toLowerCase() !== primaryMeaning.toLowerCase(),
+    (g) => g.toLowerCase() !== primaryMeaning.toLowerCase() && g.split(/\s+/).length <= 3,
   );
+
+  if (qualifiers.length > 0) {
+    let meaning = primaryMeaning;
+    if (extra) meaning += ` / ${extra}`;
+    return `${meaning} (${qualifiers.join('; ')})`;
+  }
+
   if (extra) {
-    return `${primaryMeaning} (${extra})`;
+    return `${primaryMeaning} — also "${extra}"`;
   }
   return primaryMeaning;
 }
 
-function buildUsedFor(entry: LexicalEntry | undefined): string {
+/**
+ * Extract nouns that typically appear as objects (before を) of the target word
+ * from sentence evidence.
+ */
+function extractTypicalObjects(word: string, sentences: SentenceExample[]): string[] {
+  const objects: string[] = [];
+  const seen = new Set<string>();
+
+  for (const s of sentences) {
+    if (objects.length >= 3) break;
+    const text = s.japanese;
+    const idx = text.indexOf(word);
+    if (idx < 1) continue;
+
+    const before = text.slice(Math.max(0, idx - 15), idx);
+    const match = before.match(
+      /([\u4e00-\u9faf\u3040-\u309f\u30a0-\u30ff]{1,6})を$/u,
+    );
+    if (!match) continue;
+
+    const obj = match[1];
+    if (seen.has(obj)) continue;
+    seen.add(obj);
+    objects.push(obj);
+  }
+
+  return objects;
+}
+
+/**
+ * Build "Used for" from lexical metadata + sentence evidence.
+ * Focuses on what situations/objects the word applies to.
+ */
+function buildUsedFor(
+  entry: LexicalEntry | undefined,
+  sentences: SentenceExample[],
+  word: string,
+): string {
   if (!entry) return 'General use.';
 
   const parts: string[] = [];
 
+  // Domain context from fields
   if (entry.fields && entry.fields.length > 0) {
-    parts.push(
-      `Typically used in ${entry.fields.join(' and ')} contexts`,
-    );
+    parts.push(`Typically used in ${entry.fields.join(' and ')} contexts`);
   }
 
-  if (entry.common === false) {
-    parts.push('Less common; found in formal or specialized writing');
-  } else if (entry.common && !(entry.fields && entry.fields.length > 0)) {
-    parts.push('Commonly used in everyday Japanese');
+  // Only add commonality if we don't already have domain context
+  if (parts.length === 0) {
+    if (entry.common === false) {
+      parts.push('Less common; found in formal or specialized writing');
+    } else if (entry.common) {
+      parts.push('Everyday use');
+    }
   }
 
+  // Info notes from dictionary (but skip register-like ones — those go in Register)
   if (entry.info && entry.info.length > 0) {
-    const relevant = entry.info.filter((i) => i.length > 0);
+    const relevant = entry.info.filter(
+      (i) => i.length > 0 && !/formal|colloquial|polite|humble|honorific|archaic|vulgar|slang/i.test(i),
+    );
     if (relevant.length > 0) parts.push(relevant.join('; '));
   }
 
@@ -138,6 +212,32 @@ function buildUsedFor(entry: LexicalEntry | undefined): string {
 
   if (parts.length === 0) return 'General use.';
   return parts.join('. ') + '.';
+}
+
+/**
+ * Remove redundancy between "Used for" and "Register" sections.
+ * If register already says "Formal / literary", strip "Less common; found in formal..." from usedFor.
+ */
+function deduplicateWithRegister(usedFor: string, register: string): string {
+  const regLower = register.toLowerCase();
+
+  // If register already covers formality, strip generic formality statements from usedFor
+  if (regLower.includes('formal') || regLower.includes('literary') || regLower.includes('polite')) {
+    usedFor = usedFor
+      .replace(/Less common; found in formal or specialized writing\.?\s*/i, '')
+      .replace(/\.\s*\./g, '.');
+  }
+
+  // If register already covers casualness
+  if (regLower.includes('casual') || regLower.includes('colloquial') || regLower.includes('slang')) {
+    usedFor = usedFor
+      .replace(/Everyday use\.?\s*/i, '')
+      .replace(/\.\s*\./g, '.');
+  }
+
+  const trimmed = usedFor.replace(/^[\s.]+|[\s.]+$/g, '');
+  if (!trimmed) return 'General use.';
+  return trimmed.endsWith('.') ? trimmed : trimmed + '.';
 }
 
 function inferRegister(entry: LexicalEntry | undefined): string | undefined {
@@ -242,16 +342,13 @@ function extractPatterns(
   sentences: SentenceExample[],
   entry: LexicalEntry | undefined,
 ): string[] {
-  const patterns: string[] = [];
-
   const isSuru =
     entry?.partsOfSpeech.some((p) => /suru|する/i.test(p)) ?? false;
-  if (isSuru) {
-    patterns.push(`- Xを${word}する`);
-  }
+
+  const sentencePatterns: string[] = [];
 
   for (const s of sentences) {
-    if (patterns.length >= 3) break;
+    if (sentencePatterns.length >= 3) break;
     const text = s.japanese;
     const idx = text.indexOf(word);
     if (idx < 1) continue;
@@ -269,16 +366,21 @@ function extractPatterns(
     }
 
     const pat = match[1] + word + suffix;
-    if (patterns.some((p) => p.includes(pat))) continue;
+    if (sentencePatterns.some((p) => p.includes(pat))) continue;
 
     let line = `- ${pat}`;
     if (s.english) {
       line += ` → ${s.english}`;
     }
-    patterns.push(line);
+    sentencePatterns.push(line);
   }
 
-  return patterns.slice(0, 3);
+  // Only include the suru template if we also have real sentence patterns
+  if (isSuru && sentencePatterns.length > 0) {
+    return [`- Xを${word}する`, ...sentencePatterns].slice(0, 3);
+  }
+
+  return sentencePatterns.slice(0, 3);
 }
 
 function pickBestExample(

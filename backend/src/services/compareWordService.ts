@@ -58,28 +58,30 @@ export function scoreCandidate(
 }
 
 /**
- * Build a short natural-language explanation of how two words differ.
+ * Build a short natural-language explanation of *when to use which* word.
+ * Focus: help a learner pick the right word, not just list differences.
  */
 export function buildExplanation(
   target: LexicalEntry,
   candidate: LexicalEntry,
 ): string {
-  // Same reading — homophone pair
+  const tGlosses = strs(target.glosses);
+  const cGlosses = strs(candidate.glosses);
+  const tFirst = tGlosses[0] ?? '?';
+  const cFirst = cGlosses[0] ?? '?';
+
+  // Same reading — homophone pair: focus on when to use which
   if (
     target.reading &&
     candidate.reading &&
     target.reading === candidate.reading
   ) {
-    const tMeaning = target.glosses[0] ?? '?';
-    const cMeaning = candidate.glosses[0] ?? '?';
-    return `Both read ${target.reading}: ${target.word} = ${tMeaning}, ${candidate.word} = ${cMeaning}.`;
+    return `Both read ${target.reading}. Use ${target.word} for "${tFirst}"; use ${candidate.word} for "${cFirst}".`;
   }
 
-  // Overlapping glosses — near-synonyms
-  const tGlosses = strs(target.glosses);
-  const cGlosses = strs(candidate.glosses);
-  const targetGlossSet = new Set(tGlosses.map((g) => g.toLowerCase()));
+  // Overlapping glosses — near-synonyms: say what each one emphasizes
   const candidateGlossSet = new Set(cGlosses.map((g) => g.toLowerCase()));
+  const targetGlossSet = new Set(tGlosses.map((g) => g.toLowerCase()));
   const overlap = tGlosses.filter((g) =>
     candidateGlossSet.has(g.toLowerCase()),
   );
@@ -91,11 +93,12 @@ export function buildExplanation(
       (g) => !targetGlossSet.has(g.toLowerCase()),
     );
     if (uniqueTarget && uniqueCandidate) {
-      return `${target.word} emphasizes "${uniqueTarget}"; ${candidate.word} emphasizes "${uniqueCandidate}".`;
+      return `Use ${target.word} when you mean "${uniqueTarget}"; use ${candidate.word} when you mean "${uniqueCandidate}".`;
     }
+    return `Both can mean "${overlap[0]}". Use ${target.word} (${tFirst}) vs ${candidate.word} (${cFirst}) depending on context.`;
   }
 
-  // Shared kanji
+  // Shared kanji — explain the relationship briefly
   const targetKanji = [...target.word].filter((c) =>
     /[\u4e00-\u9faf]/.test(c),
   );
@@ -104,11 +107,11 @@ export function buildExplanation(
   );
   const shared = targetKanji.filter((k) => candidateKanjiSet.has(k));
   if (shared.length > 0) {
-    return `Both share ${shared.join('')}: ${target.word} (${target.glosses[0] ?? '?'}) vs ${candidate.word} (${candidate.glosses[0] ?? '?'}).`;
+    return `Share kanji ${shared.join('')}. Use ${target.word} for "${tFirst}"; use ${candidate.word} for "${cFirst}".`;
   }
 
   // Fallback
-  return `${candidate.word} (${candidate.glosses[0] ?? '?'}) is similar but used differently.`;
+  return `${candidate.word} (${cFirst}) is related but used in different situations.`;
 }
 
 /**
