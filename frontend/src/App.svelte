@@ -227,7 +227,7 @@
     <!-- Central Action Card -->
     <div class="w-full max-w-2xl bg-surface-container-lowest dark:bg-zinc-900 rounded-2xl p-8 md:p-12 relative group shadow-xl shadow-black/[0.03] dark:shadow-black/30 ring-1 ring-black/[0.03] dark:ring-white/[0.06]">
       {#if !hasToken}
-        <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3 animate-pulse">
+        <div class="absolute -top-4 -right-4 bg-tertiary text-white font-label text-[10px] tracking-widest uppercase py-2 px-4 rounded-lg shadow-lg rotate-3">
           Setup Required
         </div>
       {/if}
