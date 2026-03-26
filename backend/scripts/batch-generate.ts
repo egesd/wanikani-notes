@@ -18,13 +18,17 @@
 
 import fs from 'fs';
 import path from 'path';
+import dotenv from 'dotenv';
 import OpenAI from 'openai';
 import Database from 'better-sqlite3';
+
+// Load .env from project root
+dotenv.config({ path: path.resolve(import.meta.dirname, '../../.env') });
 import { SYSTEM_PROMPT, buildPrompt, type PromptInput } from '../src/services/promptBuilder.js';
 import { fetchLexical, findBestEntry } from '../src/services/lexicalService.js';
 import { fetchSentences, rankSentences } from '../src/services/sentenceService.js';
 import { findCompareCandidateAsync } from '../src/services/compareWordService.js';
-import type { WKSubject, LexicalEntry } from '@shared/types.js';
+import type { WKSubject, WKMeaning, LexicalEntry } from '../../shared/types.js';
 
 const WK_TOKEN = process.env.WANIKANI_TOKEN;
 const OPENAI_KEY = process.env.OPENAI_API_KEY;
@@ -46,7 +50,7 @@ const WK_HEADERS = {
   'Wanikani-Revision': '20170710',
 };
 
-const DB_DIR = path.join(process.cwd(), 'data');
+const DB_DIR = path.resolve(import.meta.dirname, '../../data');
 const DB_PATH = path.join(DB_DIR, 'notes.db');
 const JSONL_PATH = path.join(DB_DIR, 'batch-input.jsonl');
 
@@ -116,7 +120,7 @@ async function buildPromptForSubject(
 
     // Extract synonyms from entry glosses (reuse logic from noteComposer)
     const primaryMeaning =
-      subject.data.meanings.find((m) => m.primary)?.meaning ?? '';
+      subject.data.meanings.find((m: WKMeaning) => m.primary)?.meaning ?? '';
     const synonyms = entry
       ? entry.glosses
           .filter((g: string) => g.toLowerCase() !== primaryMeaning.toLowerCase())

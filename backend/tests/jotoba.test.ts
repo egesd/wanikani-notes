@@ -20,11 +20,11 @@ describe('searchWords (Jotoba)', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://jotoba.de/api/search/words',
-      {
+      expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: '食べる', language: 'English', no_english: false }),
-      },
+      }),
     );
   });
 
@@ -73,11 +73,11 @@ describe('searchSentences', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://jotoba.de/api/search/sentences',
-      {
+      expect.objectContaining({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ query: '食べる', language: 'English', no_english: false }),
-      },
+      }),
     );
   });
 

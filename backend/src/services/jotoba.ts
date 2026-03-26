@@ -7,6 +7,7 @@ export async function searchWords(query: string): Promise<JotobaWord[]> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, language: 'English', no_english: false }),
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) {
     throw new Error(`Jotoba words error: ${res.status}`);
@@ -20,6 +21,7 @@ export async function searchSentences(query: string): Promise<JotobaSentence[]> 
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ query, language: 'English', no_english: false }),
+    signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) {
     throw new Error(`Jotoba sentences error: ${res.status}`);

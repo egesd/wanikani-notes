@@ -19,6 +19,7 @@ describe('searchWords', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://jisho.org/api/v1/search/words?keyword=%E8%B5%B0%E3%82%8B',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 

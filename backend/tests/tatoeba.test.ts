@@ -19,6 +19,7 @@ describe('searchSentences (Tatoeba)', () => {
 
     expect(mockFetch).toHaveBeenCalledWith(
       'https://tatoeba.org/api_v0/search?from=jpn&to=eng&query=%E6%8D%95%E7%8D%B2',
+      expect.objectContaining({ signal: expect.any(AbortSignal) }),
     );
   });
 
