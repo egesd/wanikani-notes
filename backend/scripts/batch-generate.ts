@@ -287,32 +287,37 @@ async function main(): Promise<void> {
   // Step 1
   const subjects = await fetchAllSubjects();
 
-  // Step 2: Build prompts (with rate limiting for external APIs)
+  // Step 2: Build prompts (parallel batches for speed)
   console.log('Building prompts (fetching lexical + sentence data)...');
   const batchItems: { word: string; prompt: string }[] = [];
   const synonymsMap = new Map<string, string[]>();
   let skipped = 0;
 
-  for (let i = 0; i < subjects.length; i++) {
-    const subject = subjects[i];
-    const word = subject.data.characters;
+  const CONCURRENCY = 10;
+  for (let i = 0; i < subjects.length; i += CONCURRENCY) {
+    const chunk = subjects.slice(i, i + CONCURRENCY);
 
-    process.stdout.write(
-      `\r  [${i + 1}/${subjects.length}] ${word}...                    `,
+    const results = await Promise.allSettled(
+      chunk.map((subject) => buildPromptForSubject(subject)),
     );
 
-    const result = await buildPromptForSubject(subject);
-    if (result) {
-      batchItems.push({ word, prompt: result.prompt });
-      synonymsMap.set(word, result.synonyms);
-    } else {
-      skipped++;
+    for (let j = 0; j < chunk.length; j++) {
+      const r = results[j];
+      const word = chunk[j].data.characters;
+      if (r.status === 'fulfilled' && r.value) {
+        batchItems.push({ word, prompt: r.value.prompt });
+        synonymsMap.set(word, r.value.synonyms);
+      } else {
+        skipped++;
+      }
     }
 
-    // Rate limit: ~5 req/sec for external APIs
-    if (i % 5 === 0) {
-      await new Promise((r) => setTimeout(r, 1000));
-    }
+    process.stdout.write(
+      `\r  [${Math.min(i + CONCURRENCY, subjects.length)}/${subjects.length}] (${batchItems.length} built, ${skipped} skipped)    `,
+    );
+
+    // Brief pause between batches to be polite to APIs
+    await new Promise((r) => setTimeout(r, 500));
   }
 
   console.log(
