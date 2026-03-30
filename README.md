@@ -1,5 +1,7 @@
 # WaniKani Study Notes
 
+**Live app:** [KaniNotes](https://kaninotes.fly.dev/)
+
 A web app that generates disambiguation-focused study notes for [WaniKani](https://www.wanikani.com/) vocabulary, then saves them directly as study materials on your WaniKani account.
 
 Notes highlight **what makes each word distinct** — typical usage, confusion pairs, register, and collocations — rather than restating definitions you already know from WaniKani.
